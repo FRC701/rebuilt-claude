@@ -124,10 +124,9 @@ public class SwerveModule {
      */
     public void setDesiredState(SwerveModuleState desiredState) {
         // Optimize: flip drive direction if it means a smaller steer rotation
-        SwerveModuleState optimized = SwerveModuleState.optimize(desiredState, getSteerAngle());
-
-        // Cosine scaling: reduce drive speed proportional to steer angle error
-        optimized.speedMetersPerSecond *= optimized.angle.minus(getSteerAngle()).getCos();
+        SwerveModuleState optimized = desiredState;
+        optimized.optimize(getSteerAngle());
+        optimized.cosineScale(getSteerAngle());
 
         // Convert m/s to rotations/s for TalonFX velocity control
         double driveRotationsPerSecond =
