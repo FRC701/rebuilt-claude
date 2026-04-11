@@ -161,24 +161,41 @@ public class SwerveModule {
         return m_name;
     }
 
-    // ── Private Helpers ───────────────────────────────────────────────────────
-
-    private Rotation2d getSteerAngle() {
-        // RemoteCANcoder reports position directly in rotations
-        return Rotation2d.fromRotations(m_steerMotor.getPosition().getValueAsDouble());
+    /**
+     * Directly sets the drive motor output voltage. Used by SysId routines only — do not call
+     * during normal operation.
+     *
+     * @param volts Voltage to apply (-12 to 12)
+     */
+    public void setDriveVoltage(double volts) {
+        m_driveMotor.setVoltage(volts);
+        // Hold steer motor straight forward during SysId
+        m_steerMotor.setControl(m_steerPositionRequest.withPosition(0.0));
     }
 
-    private double getDriveVelocityMPS() {
-        // Convert rotations/s → m/s
+    /** Returns the drive motor applied voltage. Used by SysId. */
+    public double getDriveVoltage() {
+        return m_driveMotor.getMotorVoltage().getValueAsDouble();
+    }
+
+    /** Returns the drive position in meters. Used by SysId. */
+    public double getDrivePositionMeters() {
+        return m_driveMotor.getPosition().getValueAsDouble()
+                / SwerveConstants.kDriveGearRatio
+                * SwerveConstants.kWheelCircumference;
+    }
+
+    /** Returns the drive velocity in m/s. Used by SysId. */
+    public double getDriveVelocityMPS() {
         return m_driveMotor.getVelocity().getValueAsDouble()
                 / SwerveConstants.kDriveGearRatio
                 * SwerveConstants.kWheelCircumference;
     }
 
-    private double getDrivePositionMeters() {
-        // Convert rotations → meters
-        return m_driveMotor.getPosition().getValueAsDouble()
-                / SwerveConstants.kDriveGearRatio
-                * SwerveConstants.kWheelCircumference;
+    // ── Private Helpers ───────────────────────────────────────────────────────
+
+    public Rotation2d getSteerAngle() {
+        // RemoteCANcoder reports position directly in rotations
+        return Rotation2d.fromRotations(m_steerMotor.getPosition().getValueAsDouble());
     }
 }

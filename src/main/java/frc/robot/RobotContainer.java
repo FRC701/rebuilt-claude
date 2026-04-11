@@ -23,6 +23,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.OIConstants;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.subsystems.swerve.Swerve;
@@ -102,6 +103,26 @@ public class RobotContainer {
     private void configureButtonBindings() {
         // Back/Select button → zero gyro heading
         m_driverController.back().onTrue(Commands.runOnce(m_swerve::zeroGyro, m_swerve));
+
+        // ── SysId bindings (comment out during normal use) ────────────────────────
+        // Hold LB + press A/B/X/Y to run SysId routines.
+        // LB must be held as a safety interlock so routines don't run accidentally.
+        m_driverController
+                .leftBumper()
+                .and(m_driverController.a())
+                .whileTrue(m_swerve.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+        m_driverController
+                .leftBumper()
+                .and(m_driverController.b())
+                .whileTrue(m_swerve.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+        m_driverController
+                .leftBumper()
+                .and(m_driverController.x())
+                .whileTrue(m_swerve.sysIdDynamic(SysIdRoutine.Direction.kForward));
+        m_driverController
+                .leftBumper()
+                .and(m_driverController.y())
+                .whileTrue(m_swerve.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
         // TODO: Add more button bindings here as subsystems are added.
         // Examples:

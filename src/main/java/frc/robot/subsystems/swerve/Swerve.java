@@ -1,5 +1,9 @@
 package frc.robot.subsystems.swerve;
 
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Volts;
+
 import com.ctre.phoenix6.hardware.Pigeon2;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -8,9 +12,14 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.units.measure.MutDistance;
+import edu.wpi.first.units.measure.MutLinearVelocity;
+import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.CANDevices;
 import frc.robot.Constants.SwerveConstants;
 
@@ -26,6 +35,16 @@ import frc.robot.Constants.SwerveConstants;
  *   at the end of auto or when defending
  * * addVisionMeasurement() is stubbed in and ready for when you add vision later
  *
+ */
+
+/*
+ * Tuning Swerve
+ *
+ * - Get mechanical measurements in Constants.java
+ * - Verify motor inversions and CANcoder offsets on the real robot
+ * - Run SysId to get drive feedforward and PID gains
+ * - Tune steer PID (usually just kP empirically)
+ * - Tune PathPlanner gains last
  */
 
 public class Swerve extends SubsystemBase {
@@ -46,6 +65,44 @@ public class Swerve extends SubsystemBase {
 
     // ── Field visualization (Shuffleboard) ────────────────────────────────────
     private final Field2d m_field = new Field2d();
+
+    // Mutable holders for SysId measurements — reused each loop to avoid GC
+    private final MutVoltage m_sysIdAppliedVoltage = Volts.mutable(0);
+    private final MutDistance m_sysIdPosition = Meters.mutable(0);
+    private final MutLinearVelocity m_sysIdVelocity = MetersPerSecond.mutable(0);
+
+    private final SysIdRoutine m_sysIdRoutine =
+            new SysIdRoutine(
+                    new SysIdRoutine.Config(),
+                    new SysIdRoutine.Mechanism(
+                            // Drive all modules at the same voltage, wheels pointed straight
+                            voltage -> {
+                                for (SwerveModule module : getModulesArray()) {
+                                    module.setDriveVoltage(voltage.in(Volts));
+                                }
+                            },
+                            // Log drive position, velocity, and voltage for each module
+                            log -> {
+                                SwerveModule[] modules = getModulesArray();
+                                String[] names = {
+                                    "FrontLeft", "FrontRight", "BackLeft", "BackRight"
+                                };
+                                for (int i = 0; i < modules.length; i++) {
+                                    log.motor(names[i])
+                                            .voltage(
+                                                    m_sysIdAppliedVoltage.mut_replace(
+                                                            modules[i].getDriveVoltage(), Volts))
+                                            .linearPosition(
+                                                    m_sysIdPosition.mut_replace(
+                                                            modules[i].getDrivePositionMeters(),
+                                                            Meters))
+                                            .linearVelocity(
+                                                    m_sysIdVelocity.mut_replace(
+                                                            modules[i].getDriveVelocityMPS(),
+                                                            MetersPerSecond));
+                                }
+                            },
+                            this));
 
     public Swerve() {
         // ── Instantiate modules ───────────────────────────────────────────────
@@ -272,5 +329,30 @@ public class Swerve extends SubsystemBase {
         SmartDashboard.putNumber("Odometry/X Meters", pose.getX());
         SmartDashboard.putNumber("Odometry/Y Meters", pose.getY());
         SmartDashboard.putNumber("Odometry/Heading Degrees", pose.getRotation().getDegrees());
+    }
+
+    /**
+     * Returns a SysId quasistatic command for the drive motors. Run this slowly in both directions
+     * to characterize kS and kV.
+     *
+     * @param direction Forward or Reverse
+     */
+    public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+        return m_sysIdRoutine.quasistatic(direction);
+    }
+
+    /**
+     * Returns a SysId dynamic command for the drive motors. Run this with a fast voltage ramp in
+     * both directions to characterize kA.
+     *
+     * @param direction Forward or Reverse
+     */
+    public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+        return m_sysIdRoutine.dynamic(direction);
+    }
+
+    /** Returns all four modules as an array for iteration. */
+    private SwerveModule[] getModulesArray() {
+        return new SwerveModule[] {m_frontLeft, m_frontRight, m_backLeft, m_backRight};
     }
 }
