@@ -1,5 +1,6 @@
 package frc.robot;
 
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
@@ -11,7 +12,7 @@ import edu.wpi.first.math.util.Units;
 public final class Constants {
 
     public static final class CANDevices {
-        public static final String kCanIvoreBus = "canivore";
+        public static final CANBus kCanIvoreBus = new CANBus("canivore");
 
         // Drive Motors (TalonFX)
         public static final int kFrontLeftDriveID = 1;
