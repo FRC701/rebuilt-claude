@@ -1,63 +1,122 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot;
 
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.Constants.OIConstants;
-import frc.robot.commands.Autos;
-import frc.robot.commands.ExampleCommand;
-import frc.robot.subsystems.ExampleSubsystem;
-
 /**
- * This class is where the bulk of the robot should be declared. Since Command-based is a
- * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
- * periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
- * subsystems, commands, and trigger mappings) should be declared here.
+ * RobotContainer wires together all subsystems, commands, and operator inputs.
+ *
+ * <p>Design decisions: - A single {@link edu.wpi.first.wpilibj2.command.CommandXboxController} is
+ * used for the driver. Add a second controller here for an operator. - {@link TeleopSwerve} is set
+ * as the default command for the swerve subsystem so it runs automatically during teleop whenever
+ * no other command requires the drivetrain. - PathPlanner's {@code AutoBuilder} is configured here
+ * during construction. All auto routines are registered via {@code NamedCommands} and selected via
+ * a {@code SendableChooser} on SmartDashboard. - The gyro zero button (Back/Select) resets
+ * field-relative heading. Useful when the robot's field orientation drifts during a match. - All
+ * button bindings use {@code CommandXboxController} trigger/button methods with WPILib's {@code
+ * Trigger} API for clean, declarative bindings.
  */
-public class RobotContainer {
-    // The robot's subsystems and commands are defined here...
-    private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.Constants.OIConstants;
+import frc.robot.commands.TeleopSwerve;
+import frc.robot.subsystems.swerve.Swerve;
 
-    // Replace with CommandPS4Controller or CommandJoystick if needed
+public class RobotContainer {
+
+    // ── Subsystems ────────────────────────────────────────────────────────────
+    private final Swerve m_swerve = new Swerve();
+
+    // ── Controllers ───────────────────────────────────────────────────────────
     private final CommandXboxController m_driverController =
             new CommandXboxController(OIConstants.kDriverControllerPort);
 
-    /** The container for the robot. Contains subsystems, OI devices, and commands. */
+    // ── Auto chooser ──────────────────────────────────────────────────────────
+    private final SendableChooser<Command> m_autoChooser;
+
     public RobotContainer() {
-        // Configure the trigger bindings
-        configureBindings();
+        configurePathPlanner();
+        configureDefaultCommands();
+        configureButtonBindings();
+
+        // Build auto chooser from all autos defined in the deploy/pathplanner/autos
+        // directory. The argument is the default auto to select on boot.
+        m_autoChooser = AutoBuilder.buildAutoChooser("None");
+        SmartDashboard.putData("Auto Chooser", m_autoChooser);
     }
 
-    /**
-     * Use this method to define your trigger->command mappings. Triggers can be created via the
-     * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary
-     * predicate, or via the named factories in {@link
-     * edu.wpi.first.wpilibj2.command.button.CommandGenericHID}'s subclasses for {@link
-     * CommandXboxController Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller
-     * PS4} controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight
-     * joysticks}.
-     */
-    private void configureBindings() {
-        // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
-        new Trigger(m_exampleSubsystem::exampleCondition)
-                .onTrue(new ExampleCommand(m_exampleSubsystem));
+    // ── PathPlanner ───────────────────────────────────────────────────────────
 
-        // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
-        // cancelling on release.
-        m_driverController.b().whileTrue(m_exampleSubsystem.exampleMethodCommand());
+    private void configurePathPlanner() {
+        try {
+            // Load robot physical config from PathPlanner's GUI export.
+            // TODO: Configure your robot in the PathPlanner GUI and export
+            // the config, or adjust RobotConfig parameters manually.
+            RobotConfig config = RobotConfig.fromGUISettings();
+
+            AutoBuilder.configure(
+                    m_swerve::getPose,
+                    m_swerve::resetPose,
+                    m_swerve::getRobotRelativeSpeeds,
+                    (speeds, feedforwards) -> m_swerve.drive(speeds, false),
+                    new PPHolonomicDriveController(
+                            // TODO: Tune translation PID gains
+                            new PIDConstants(5.0, 0.0, 0.0),
+                            // TODO: Tune rotation PID gains
+                            new PIDConstants(5.0, 0.0, 0.0)),
+                    config,
+                    // Flip paths for red alliance automatically
+                    () -> {
+                        var alliance = edu.wpi.first.wpilibj.DriverStation.getAlliance();
+                        return alliance.isPresent()
+                                && alliance.get()
+                                        == edu.wpi.first.wpilibj.DriverStation.Alliance.Red;
+                    },
+                    m_swerve);
+
+        } catch (Exception e) {
+            System.err.println(
+                    "[RobotContainer] Failed to configure PathPlanner: " + e.getMessage());
+        }
+
+        // ── Register named commands ───────────────────────────────────────────
+        // TODO: Register commands that PathPlanner autos can invoke by name.
+        // Example:
+        // NamedCommands.registerCommand("IntakeDown", new IntakeDownCommand(m_intake));
+        NamedCommands.registerCommand("Placeholder", Commands.none());
     }
 
+    // ── Default Commands ──────────────────────────────────────────────────────
+
+    private void configureDefaultCommands() {
+        m_swerve.setDefaultCommand(new TeleopSwerve(m_swerve, m_driverController));
+    }
+
+    // ── Button Bindings ───────────────────────────────────────────────────────
+
+    private void configureButtonBindings() {
+        // Back/Select button → zero gyro heading
+        m_driverController.back().onTrue(Commands.runOnce(m_swerve::zeroGyro, m_swerve));
+
+        // TODO: Add more button bindings here as subsystems are added.
+        // Examples:
+        // m_driverController.a().whileTrue(new IntakeCommand(m_intake));
+        // m_driverController.rightBumper().onTrue(new ShootCommand(m_shooter));
+    }
+
+    // ── Auto ──────────────────────────────────────────────────────────────────
+
     /**
-     * Use this to pass the autonomous command to the main {@link Robot} class.
+     * Called by {@link Robot} to get the selected autonomous command.
      *
-     * @return the command to run in autonomous
+     * @return The command to run during autonomous
      */
     public Command getAutonomousCommand() {
-        // An example command will be run in autonomous
-        return Autos.exampleAuto(m_exampleSubsystem);
+        return m_autoChooser.getSelected();
     }
 }
