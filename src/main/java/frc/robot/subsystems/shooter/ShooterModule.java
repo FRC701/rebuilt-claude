@@ -13,6 +13,10 @@ package frc.robot.subsystems.shooter;
  * mechanical stress from abrupt braking. - FOC is disabled since we are not using a Phoenix Pro
  * license.
  */
+import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Volts;
+
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VelocityVoltage;
@@ -20,6 +24,12 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+import edu.wpi.first.units.measure.MutAngle;
+import edu.wpi.first.units.measure.MutAngularVelocity;
+import edu.wpi.first.units.measure.MutVoltage;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 public class ShooterModule {
 
@@ -37,6 +47,15 @@ public class ShooterModule {
 
     // ── Distance → RPM lookup table ───────────────────────────────────────────
     private final InterpolatingDoubleTreeMap m_rpmMap = new InterpolatingDoubleTreeMap();
+
+    // ── SysId ─────────────────────────────────────────────────────────────────
+    // Mutable holders for SysId measurements — reused each loop to avoid GC.
+    // Angular units are used since shooter wheels are rotational mechanisms.
+    private final MutVoltage m_sysIdAppliedVoltage = Volts.mutable(0);
+    private final MutAngle m_sysIdPosition = Rotations.mutable(0);
+    private final MutAngularVelocity m_sysIdVelocity = RotationsPerSecond.mutable(0);
+
+    private SysIdRoutine m_sysIdRoutine;
 
     /**
      * Constructs a ShooterModule.
@@ -189,5 +208,57 @@ public class ShooterModule {
 
     private double rotationsPerSecondToRPM(double rps) {
         return rps * 60.0;
+    }
+
+    /**
+     * Initializes the SysId routine for this module. Must be called after construction, passing the
+     * parent subsystem so SysId can properly manage command requirements.
+     *
+     * @param subsystem The parent Shooter subsystem
+     */
+    public void initSysId(SubsystemBase subsystem) {
+        m_sysIdRoutine =
+                new SysIdRoutine(
+                        new SysIdRoutine.Config(),
+                        new SysIdRoutine.Mechanism(
+                                voltage -> m_motor.setVoltage(voltage.in(Volts)),
+                                log ->
+                                        log.motor(m_name)
+                                                .voltage(
+                                                        m_sysIdAppliedVoltage.mut_replace(
+                                                                m_motor.getMotorVoltage()
+                                                                        .getValueAsDouble(),
+                                                                Volts))
+                                                .angularPosition(
+                                                        m_sysIdPosition.mut_replace(
+                                                                m_motor.getPosition()
+                                                                        .getValueAsDouble(),
+                                                                Rotations))
+                                                .angularVelocity(
+                                                        m_sysIdVelocity.mut_replace(
+                                                                m_motor.getVelocity()
+                                                                        .getValueAsDouble(),
+                                                                RotationsPerSecond)),
+                                subsystem));
+    }
+
+    /**
+     * Returns a SysId quasistatic command for this module. Run slowly in both directions to
+     * characterize kS and kV.
+     *
+     * @param direction Forward or Reverse
+     */
+    public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+        return m_sysIdRoutine.quasistatic(direction);
+    }
+
+    /**
+     * Returns a SysId dynamic command for this module. Run with a fast voltage ramp in both
+     * directions to characterize kA.
+     *
+     * @param direction Forward or Reverse
+     */
+    public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+        return m_sysIdRoutine.dynamic(direction);
     }
 }
