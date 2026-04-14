@@ -39,6 +39,10 @@ public final class Constants {
         // Agitator Motors (TalonFX) - RoboRIO CAN bus
         public static final int kLeftAgitatorID = 21;
         public static final int kRightAgitatorID = 22;
+
+        // Shooter Motors (TalonFX) - RoboRIO CAN bus
+        public static final int kLeftShooterID = 31;
+        public static final int kRightShooterID = 32;
     }
 
     public static final class SwerveConstants {
@@ -149,6 +153,59 @@ public final class Constants {
 
         // TODO: Tune this to the desired agitator speed (0.0 to 1.0)
         public static final double kDefaultSpeed = 0.5;
+    }
+
+    public static final class ShooterConstants {
+        public static final InvertedValue kLeftShooterInvert =
+                InvertedValue.CounterClockwise_Positive;
+        public static final InvertedValue kRightShooterInvert = InvertedValue.Clockwise_Positive;
+
+        public static final NeutralModeValue kNeutralMode = NeutralModeValue.Coast;
+
+        public static final double kSupplyCurrentLimit = 60.0; // amps
+        public static final double kStatorCurrentLimit = 120.0; // amps
+
+        // ── Velocity PID (slot 0) ─────────────────────────────────────────────
+        // TODO: Tune these after SysId characterization
+        public static final double kLeftKP = 0.1;
+        public static final double kLeftKI = 0.0;
+        public static final double kLeftKD = 0.0;
+        public static final double kLeftKS = 0.0; // volts
+        public static final double kLeftKV = 0.12; // volts per rot/s
+        public static final double kLeftKA = 0.0; // volts per rot/s²
+
+        public static final double kRightKP = 0.1;
+        public static final double kRightKI = 0.0;
+        public static final double kRightKD = 0.0;
+        public static final double kRightKS = 0.0; // volts
+        public static final double kRightKV = 0.12; // volts per rot/s
+        public static final double kRightKA = 0.0; // volts per rot/s²
+
+        // ── Velocity tolerance ────────────────────────────────────────────────
+        // How close to target RPM before we consider the shooter "ready to fire"
+        public static final double kVelocityToleranceRPM = 50.0;
+
+        // ── Distance → RPM lookup tables ──────────────────────────────────────
+        // TODO: Replace these placeholder values with empirically tested data.
+        // Key   = distance to target in meters
+        // Value = target RPM for that distance
+        // Add as many points as needed — InterpolatingDoubleTreeMap will
+        // smoothly interpolate between them at runtime.
+        public static final double[][] kLeftRPMMap = {
+            {1.0, 2000.0},
+            {2.0, 3000.0},
+            {3.0, 4000.0},
+            {4.0, 5000.0},
+            {5.0, 6000.0}
+        };
+
+        public static final double[][] kRightRPMMap = {
+            {1.0, 2000.0},
+            {2.0, 3000.0},
+            {3.0, 4000.0},
+            {4.0, 5000.0},
+            {5.0, 6000.0}
+        };
     }
 
     public static final class OIConstants {
