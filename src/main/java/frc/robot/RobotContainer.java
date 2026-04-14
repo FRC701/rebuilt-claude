@@ -26,11 +26,13 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.OIConstants;
 import frc.robot.commands.TeleopSwerve;
+import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.swerve.Swerve;
 
 public class RobotContainer {
 
     // ── Subsystems ────────────────────────────────────────────────────────────
+    private final Shooter m_shooter = new Shooter();
     private final Swerve m_swerve = new Swerve();
 
     // ── Controllers ───────────────────────────────────────────────────────────
@@ -123,6 +125,56 @@ public class RobotContainer {
                 .leftBumper()
                 .and(m_driverController.y())
                 .whileTrue(m_swerve.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+
+        // ── Shooter SysId bindings (comment out during normal use) ────────────────
+        // Left shooter: Hold LB + RB + press A/B/X/Y
+        // Right shooter: Hold LB + RB + Start + press A/B/X/Y
+        // Double interlock (LB + RB) prevents accidental activation during matches.
+        m_driverController
+                .leftBumper()
+                .and(m_driverController.rightBumper())
+                .and(m_driverController.a())
+                .whileTrue(m_shooter.sysIdLeftQuasistatic(SysIdRoutine.Direction.kForward));
+        m_driverController
+                .leftBumper()
+                .and(m_driverController.rightBumper())
+                .and(m_driverController.b())
+                .whileTrue(m_shooter.sysIdLeftQuasistatic(SysIdRoutine.Direction.kReverse));
+        m_driverController
+                .leftBumper()
+                .and(m_driverController.rightBumper())
+                .and(m_driverController.x())
+                .whileTrue(m_shooter.sysIdLeftDynamic(SysIdRoutine.Direction.kForward));
+        m_driverController
+                .leftBumper()
+                .and(m_driverController.rightBumper())
+                .and(m_driverController.y())
+                .whileTrue(m_shooter.sysIdLeftDynamic(SysIdRoutine.Direction.kReverse));
+
+        m_driverController
+                .leftBumper()
+                .and(m_driverController.rightBumper())
+                .and(m_driverController.start())
+                .and(m_driverController.a())
+                .whileTrue(m_shooter.sysIdRightQuasistatic(SysIdRoutine.Direction.kForward));
+        m_driverController
+                .leftBumper()
+                .and(m_driverController.rightBumper())
+                .and(m_driverController.start())
+                .and(m_driverController.b())
+                .whileTrue(m_shooter.sysIdRightQuasistatic(SysIdRoutine.Direction.kReverse));
+        m_driverController
+                .leftBumper()
+                .and(m_driverController.rightBumper())
+                .and(m_driverController.start())
+                .and(m_driverController.x())
+                .whileTrue(m_shooter.sysIdRightDynamic(SysIdRoutine.Direction.kForward));
+        m_driverController
+                .leftBumper()
+                .and(m_driverController.rightBumper())
+                .and(m_driverController.start())
+                .and(m_driverController.y())
+                .whileTrue(m_shooter.sysIdRightDynamic(SysIdRoutine.Direction.kReverse));
 
         // TODO: Add more button bindings here as subsystems are added.
         // Examples:

@@ -12,7 +12,9 @@ package frc.robot.subsystems.shooter;
  * ShooterModule so this class stays clean and free of per-motor state tracking.
  */
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.CANDevices;
 import frc.robot.Constants.ShooterConstants;
 
@@ -56,6 +58,11 @@ public class Shooter extends SubsystemBase {
                         ShooterConstants.kSupplyCurrentLimit,
                         ShooterConstants.kStatorCurrentLimit,
                         ShooterConstants.kRightRPMMap);
+
+        // Initialize SysId routines — must be called after modules are constructed,
+        // passing this subsystem as the requirement owner.
+        m_left.initSysId(this);
+        m_right.initSysId(this);
     }
 
     // ── Public API ────────────────────────────────────────────────────────────
@@ -161,5 +168,43 @@ public class Shooter extends SubsystemBase {
         SmartDashboard.putBoolean("Shooter/Ready To Fire", isReadyToFire());
         SmartDashboard.putBoolean("Shooter/Left Enabled", m_left.isEnabled());
         SmartDashboard.putBoolean("Shooter/Right Enabled", m_right.isEnabled());
+    }
+
+    // ── SysId ─────────────────────────────────────────────────────────────────
+
+    /**
+     * Returns a SysId quasistatic command for the left shooter module.
+     *
+     * @param direction Forward or Reverse
+     */
+    public Command sysIdLeftQuasistatic(SysIdRoutine.Direction direction) {
+        return m_left.sysIdQuasistatic(direction);
+    }
+
+    /**
+     * Returns a SysId dynamic command for the left shooter module.
+     *
+     * @param direction Forward or Reverse
+     */
+    public Command sysIdLeftDynamic(SysIdRoutine.Direction direction) {
+        return m_left.sysIdDynamic(direction);
+    }
+
+    /**
+     * Returns a SysId quasistatic command for the right shooter module.
+     *
+     * @param direction Forward or Reverse
+     */
+    public Command sysIdRightQuasistatic(SysIdRoutine.Direction direction) {
+        return m_right.sysIdQuasistatic(direction);
+    }
+
+    /**
+     * Returns a SysId dynamic command for the right shooter module.
+     *
+     * @param direction Forward or Reverse
+     */
+    public Command sysIdRightDynamic(SysIdRoutine.Direction direction) {
+        return m_right.sysIdDynamic(direction);
     }
 }
