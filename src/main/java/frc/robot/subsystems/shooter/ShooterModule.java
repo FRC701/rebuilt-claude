@@ -6,12 +6,14 @@ package frc.robot.subsystems.shooter;
  *
  * <p>Design decisions: - This is a plain Java class, not a SubsystemBase, mirroring the
  * SwerveModule pattern. The Shooter subsystem manages multiple ShooterModule instances and is the
- * only SubsystemBase in the shooter system. - Each module owns its own InterpolatingDoubleTreeMap
- * so left and right shooters can have completely independent distance-to-RPM profiles. -
- * Enable/disable state is encapsulated here so the Shooter subsystem does not need to track it
- * externally. - Coast mode is used so shooter wheels spin down naturally after stopping, avoiding
- * mechanical stress from abrupt braking. - FOC is disabled since we are not using a Phoenix Pro
- * license.
+ * only SubsystemBase in the shooter system. - A Config record groups all constructor parameters,
+ * mirroring the CTRE Phoenix 6 configuration pattern your team already knows. Config objects are
+ * defined as constants in ShooterConstants and passed in at construction. - Each module owns its
+ * own InterpolatingDoubleTreeMap so left and right shooters can have completely independent
+ * distance-to-RPM profiles. - Enable/disable state is encapsulated here so the Shooter subsystem
+ * does not need to track it externally. - Coast mode is used so shooter wheels spin down naturally
+ * after stopping, avoiding mechanical stress from abrupt braking. - FOC is disabled since we are
+ * not using a Phoenix Pro license.
  */
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
@@ -32,6 +34,43 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 public class ShooterModule {
+
+    // ── Configuration Record ──────────────────────────────────────────────────
+
+    /**
+     * Immutable configuration for a ShooterModule. Define instances as constants in
+     * ShooterConstants and pass them to the ShooterModule constructor.
+     *
+     * @param name Human-readable name (e.g. "Left", "Right")
+     * @param motorID CAN ID of the TalonFX motor
+     * @param canBus CAN bus the motor is on
+     * @param inverted Motor inversion
+     * @param neutralMode Motor neutral mode
+     * @param kP Velocity PID proportional gain
+     * @param kI Velocity PID integral gain
+     * @param kD Velocity PID derivative gain
+     * @param kS Feedforward static friction (volts)
+     * @param kV Feedforward velocity gain (volts per rot/s)
+     * @param kA Feedforward acceleration gain (volts per rot/s²)
+     * @param supplyCurrentLimit Supply current limit (amps)
+     * @param statorCurrentLimit Stator current limit (amps)
+     * @param rpmMap Distance-to-RPM lookup table (meters → RPM)
+     */
+    public record Config(
+            String name,
+            int motorID,
+            CANBus canBus,
+            InvertedValue inverted,
+            NeutralModeValue neutralMode,
+            double kP,
+            double kI,
+            double kD,
+            double kS,
+            double kV,
+            double kA,
+            double supplyCurrentLimit,
+            double statorCurrentLimit,
+            double[][] rpmMap) {}
 
     // ── Hardware ──────────────────────────────────────────────────────────────
     private final TalonFX m_motor;
@@ -58,63 +97,35 @@ public class ShooterModule {
     private SysIdRoutine m_sysIdRoutine;
 
     /**
-     * Constructs a ShooterModule.
+     * Constructs a ShooterModule from a {@link Config} record.
      *
-     * @param name Human-readable name (e.g. "Left", "Right") for telemetry
-     * @param motorID CAN ID of the TalonFX motor
-     * @param canBus CAN bus the motor is on
-     * @param inverted Motor inversion
-     * @param neutralMode Motor neutral mode
-     * @param kP Velocity PID proportional gain
-     * @param kI Velocity PID integral gain
-     * @param kD Velocity PID derivative gain
-     * @param kS Feedforward static friction (volts)
-     * @param kV Feedforward velocity gain (volts per rot/s)
-     * @param kA Feedforward acceleration gain (volts per rot/s²)
-     * @param supplyLimit Supply current limit (amps)
-     * @param statorLimit Stator current limit (amps)
-     * @param rpmMap Distance-to-RPM lookup table data (meters → RPM)
+     * @param config The module configuration
      */
-    public ShooterModule(
-            String name,
-            int motorID,
-            CANBus canBus,
-            InvertedValue inverted,
-            NeutralModeValue neutralMode,
-            double kP,
-            double kI,
-            double kD,
-            double kS,
-            double kV,
-            double kA,
-            double supplyLimit,
-            double statorLimit,
-            double[][] rpmMap) {
-
-        m_name = name;
+    public ShooterModule(Config config) {
+        m_name = config.name();
 
         // ── Populate lookup table ─────────────────────────────────────────────
-        for (double[] point : rpmMap) {
+        for (double[] point : config.rpmMap()) {
             m_rpmMap.put(point[0], point[1]);
         }
 
         // ── Motor configuration ───────────────────────────────────────────────
-        m_motor = new TalonFX(motorID, canBus);
+        m_motor = new TalonFX(config.motorID(), config.canBus());
 
-        TalonFXConfiguration config = new TalonFXConfiguration();
-        config.MotorOutput.Inverted = inverted;
-        config.MotorOutput.NeutralMode = neutralMode;
-        config.Slot0.kP = kP;
-        config.Slot0.kI = kI;
-        config.Slot0.kD = kD;
-        config.Slot0.kS = kS;
-        config.Slot0.kV = kV;
-        config.Slot0.kA = kA;
-        config.CurrentLimits.SupplyCurrentLimit = supplyLimit;
-        config.CurrentLimits.SupplyCurrentLimitEnable = true;
-        config.CurrentLimits.StatorCurrentLimit = statorLimit;
-        config.CurrentLimits.StatorCurrentLimitEnable = true;
-        m_motor.getConfigurator().apply(config);
+        TalonFXConfiguration motorConfig = new TalonFXConfiguration();
+        motorConfig.MotorOutput.Inverted = config.inverted();
+        motorConfig.MotorOutput.NeutralMode = config.neutralMode();
+        motorConfig.Slot0.kP = config.kP();
+        motorConfig.Slot0.kI = config.kI();
+        motorConfig.Slot0.kD = config.kD();
+        motorConfig.Slot0.kS = config.kS();
+        motorConfig.Slot0.kV = config.kV();
+        motorConfig.Slot0.kA = config.kA();
+        motorConfig.CurrentLimits.SupplyCurrentLimit = config.supplyCurrentLimit();
+        motorConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+        motorConfig.CurrentLimits.StatorCurrentLimit = config.statorCurrentLimit();
+        motorConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+        m_motor.getConfigurator().apply(motorConfig);
     }
 
     // ── Public API ────────────────────────────────────────────────────────────
@@ -209,6 +220,8 @@ public class ShooterModule {
     private double rotationsPerSecondToRPM(double rps) {
         return rps * 60.0;
     }
+
+    // ── SysId ─────────────────────────────────────────────────────────────────
 
     /**
      * Initializes the SysId routine for this module. Must be called after construction, passing the
