@@ -15,7 +15,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.Constants.CANDevices;
 import frc.robot.Constants.ShooterConstants;
 
 public class Shooter extends SubsystemBase {
@@ -25,39 +24,8 @@ public class Shooter extends SubsystemBase {
     private final ShooterModule m_right;
 
     public Shooter() {
-        m_left =
-                new ShooterModule(
-                        "Left",
-                        CANDevices.kLeftShooterID,
-                        CANDevices.kRioBus,
-                        ShooterConstants.kLeftShooterInvert,
-                        ShooterConstants.kNeutralMode,
-                        ShooterConstants.kLeftKP,
-                        ShooterConstants.kLeftKI,
-                        ShooterConstants.kLeftKD,
-                        ShooterConstants.kLeftKS,
-                        ShooterConstants.kLeftKV,
-                        ShooterConstants.kLeftKA,
-                        ShooterConstants.kSupplyCurrentLimit,
-                        ShooterConstants.kStatorCurrentLimit,
-                        ShooterConstants.kLeftRPMMap);
-
-        m_right =
-                new ShooterModule(
-                        "Right",
-                        CANDevices.kRightShooterID,
-                        CANDevices.kRioBus,
-                        ShooterConstants.kRightShooterInvert,
-                        ShooterConstants.kNeutralMode,
-                        ShooterConstants.kRightKP,
-                        ShooterConstants.kRightKI,
-                        ShooterConstants.kRightKD,
-                        ShooterConstants.kRightKS,
-                        ShooterConstants.kRightKV,
-                        ShooterConstants.kRightKA,
-                        ShooterConstants.kSupplyCurrentLimit,
-                        ShooterConstants.kStatorCurrentLimit,
-                        ShooterConstants.kRightRPMMap);
+        m_left = new ShooterModule(ShooterConstants.kLeftConfig);
+        m_right = new ShooterModule(ShooterConstants.kRightConfig);
 
         // Initialize SysId routines — must be called after modules are constructed,
         // passing this subsystem as the requirement owner.

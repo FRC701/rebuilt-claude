@@ -8,6 +8,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
+import frc.robot.subsystems.shooter.ShooterModule;
 
 public final class Constants {
 
@@ -156,14 +157,13 @@ public final class Constants {
     }
 
     public static final class ShooterConstants {
+        public static final NeutralModeValue kNeutralMode = NeutralModeValue.Coast;
+        public static final double kSupplyCurrentLimit = 60.0; // amps
+        public static final double kStatorCurrentLimit = 120.0; // amps
+
         public static final InvertedValue kLeftShooterInvert =
                 InvertedValue.CounterClockwise_Positive;
         public static final InvertedValue kRightShooterInvert = InvertedValue.Clockwise_Positive;
-
-        public static final NeutralModeValue kNeutralMode = NeutralModeValue.Coast;
-
-        public static final double kSupplyCurrentLimit = 60.0; // amps
-        public static final double kStatorCurrentLimit = 120.0; // amps
 
         // ── Velocity PID (slot 0) ─────────────────────────────────────────────
         // TODO: Tune these after SysId characterization
@@ -206,6 +206,41 @@ public final class Constants {
             {4.0, 5000.0},
             {5.0, 6000.0}
         };
+
+        // ── Module configs ────────────────────────────────────────────────────
+        public static final ShooterModule.Config kLeftConfig =
+                new ShooterModule.Config(
+                        "Left",
+                        CANDevices.kLeftShooterID,
+                        CANDevices.kRioBus,
+                        kLeftShooterInvert,
+                        kNeutralMode,
+                        kLeftKP,
+                        kLeftKI,
+                        kLeftKD,
+                        kLeftKS,
+                        kLeftKV,
+                        kLeftKA,
+                        kSupplyCurrentLimit,
+                        kStatorCurrentLimit,
+                        kLeftRPMMap);
+
+        public static final ShooterModule.Config kRightConfig =
+                new ShooterModule.Config(
+                        "Right",
+                        CANDevices.kRightShooterID,
+                        CANDevices.kRioBus,
+                        kRightShooterInvert,
+                        kNeutralMode,
+                        kRightKP,
+                        kRightKI,
+                        kRightKD,
+                        kRightKS,
+                        kRightKV,
+                        kRightKA,
+                        kSupplyCurrentLimit,
+                        kStatorCurrentLimit,
+                        kRightRPMMap);
     }
 
     public static final class OIConstants {
