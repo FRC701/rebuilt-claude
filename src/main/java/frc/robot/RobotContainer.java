@@ -25,8 +25,11 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.OIConstants;
+import frc.robot.commands.IntakeDeploy;
+import frc.robot.commands.IntakeReverse;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.subsystems.Agitator;
+import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.swerve.Swerve;
 
@@ -36,6 +39,7 @@ public class RobotContainer {
     private final Agitator m_agitator = new Agitator();
     private final Shooter m_shooter = new Shooter();
     private final Swerve m_swerve = new Swerve();
+    private final Intake m_intake = new Intake();
 
     // ── Controllers ───────────────────────────────────────────────────────────
     private final CommandXboxController m_driverController =
@@ -107,6 +111,13 @@ public class RobotContainer {
     private void configureButtonBindings() {
         // Back/Select button → zero gyro heading
         m_driverController.back().onTrue(Commands.runOnce(m_swerve::zeroGyro, m_swerve));
+
+        // Button bindings — add to configureButtonBindings()
+        // whileTrue retracts and stops roller automatically when button is released,
+        // triggering IntakeDeploy.end().
+        m_driverController.rightBumper().whileTrue(new IntakeDeploy(m_intake));
+        m_driverController.leftBumper().whileTrue(new IntakeReverse(m_intake));
+        // Note: adjust button assignments to avoid conflicts with existing bindings.
 
         // ── SysId bindings (comment out during normal use) ────────────────────────
         // Hold LB + press A/B/X/Y to run SysId routines.
