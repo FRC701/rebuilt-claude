@@ -6,6 +6,7 @@ import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import frc.robot.Constants.IntakeConstants;
 
 /**
  * Low-level wrapper around a single TalonFX for the intake.
@@ -61,9 +62,14 @@ public class IntakeModule {
 
         // PID slot 0 — used by the deploy motor for position control.
         // Roller module will never call setPosition(), so these gains are harmless.
-        cfg.Slot0.kP = frc.robot.Constants.IntakeConstants.kDeployKP;
-        cfg.Slot0.kI = frc.robot.Constants.IntakeConstants.kDeployKI;
-        cfg.Slot0.kD = frc.robot.Constants.IntakeConstants.kDeployKD;
+        cfg.Slot0.kP = IntakeConstants.kDeployKP;
+        cfg.Slot0.kI = IntakeConstants.kDeployKI;
+        cfg.Slot0.kD = IntakeConstants.kDeployKD;
+
+        // Slot 1 — retract direction, softer gains to avoid slamming the hard stop.
+        cfg.Slot1.kP = IntakeConstants.kRetractKP;
+        cfg.Slot1.kI = IntakeConstants.kRetractKI;
+        cfg.Slot1.kD = IntakeConstants.kRetractKD;
 
         m_motor.getConfigurator().apply(cfg);
     }
@@ -74,11 +80,14 @@ public class IntakeModule {
     }
 
     /**
-     * Moves motor to a target position in rotations using closed-loop PID. Used by the deploy
-     * motor.
+     * Moves motor to a target position using the specified PID slot.
+     *
+     * <p>Slot 0 is used for deploy (higher gains to push through slop), slot 1 for retract (softer
+     * gains to avoid slamming the hard stop). Keeping slot selection at this level lets Intake.java
+     * express intent (deploy vs retract) without knowing PID implementation details.
      */
-    public void setPosition(double rotations) {
-        m_motor.setControl(m_positionRequest.withPosition(rotations));
+    public void setPosition(double rotations, int slot) {
+        m_motor.setControl(m_positionRequest.withPosition(rotations).withSlot(slot));
     }
 
     /** Seeds the internal encoder with the current physical position as zero. */

@@ -279,12 +279,22 @@ public final class Constants {
         public static final double kDeployedPosition = 10.0; // rotations — placeholder
         public static final double kRetractedPosition = 0.0; // rotations — home/zero
 
-        // --- Deploy PID gains ---
-        // TODO: Tune with SysId or manual sweep. Start kP low (~0.5) and increase
-        // until the arm snaps to position without oscillating.
+        // --- Deploy PID gains (Slot 0) ---
+        // Higher kP pushes through linkage slop quickly on the way out.
+        // TODO: Tune with manual sweep. Start ~0.5, increase until arm moves
+        // crisply without oscillating.
         public static final double kDeployKP = 0.5;
         public static final double kDeployKI = 0.0; // I term rarely needed for position
         public static final double kDeployKD = 0.0;
+
+        // --- Retract PID gains (Slot 1) ---
+        // Softer kP on retract — mechanism is being pulled back and slop is
+        // taken up in the opposite direction, so a hard snap is less useful
+        // and risks slamming the arm against the retracted hard stop.
+        // TODO: Start lower than kDeployKP (~0.3) and tune separately.
+        public static final double kRetractKP = 0.3;
+        public static final double kRetractKI = 0.0;
+        public static final double kRetractKD = 0.0;
 
         // Position tolerance — arm is considered "at target" within this many rotations.
         public static final double kDeployToleranceRotations = 0.5;

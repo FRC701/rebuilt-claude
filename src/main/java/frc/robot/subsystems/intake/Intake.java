@@ -15,6 +15,10 @@ import frc.robot.Constants.IntakeConstants;
  * <p>The deploy arm uses relative position control. The encoder is seeded to zero at robot init,
  * which assumes the arm starts in the retracted position. If the robot could be powered on in any
  * position, an absolute encoder or limit switch would be needed instead.
+ *
+ * <p>If the arm ever jerks hard on deploy and you're worried about mechanism stress, the right fix
+ * is adding a kS feedforward to the Position request (not switching to Motion Magic) — it gives the
+ * motor a small initial kick without the full trapezoidal profile overhead.
  */
 public class Intake extends SubsystemBase {
 
@@ -61,12 +65,12 @@ public class Intake extends SubsystemBase {
 
     /** Commands the arm to the fully deployed position. */
     public void deploy() {
-        m_deployModule.setPosition(IntakeConstants.kDeployedPosition);
+        m_deployModule.setPosition(IntakeConstants.kDeployedPosition, 0);
     }
 
     /** Commands the arm to the fully retracted position. */
     public void retract() {
-        m_deployModule.setPosition(IntakeConstants.kRetractedPosition);
+        m_deployModule.setPosition(IntakeConstants.kRetractedPosition, 1);
     }
 
     /**
