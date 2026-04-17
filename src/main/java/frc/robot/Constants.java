@@ -310,6 +310,19 @@ public final class Constants {
         // Position tolerance — arm is considered "at target" within this many rotations.
         public static final double kDeployToleranceRotations = 0.5;
 
+        // --- Bounce constants ---
+        // Bouncing oscillates the deploy arm between two positions while intaking
+        // to prevent game pieces from jamming. Timer-based switching is used so
+        // the arm moves predictably regardless of PID settle time.
+        //
+        // kBounceAmplitudeRotations defines how far above kDeployedPosition the arm
+        // travels on the upstroke — keep small enough that the arm stays clearly
+        // deployed but large enough to dislodge jams.
+        // TODO: Tune empirically — start small (~1.0 rotation) and increase if
+        // bouncing is not effective.
+        public static final double kBounceAmplitudeRotations = 1.0; // rotations above deployed
+        public static final double kBounceHalfPeriodSeconds = 0.3; // seconds per half-cycle
+
         // --- Roller speeds ---
         // Duty cycle (-1.0 to 1.0). Positive = intaking, negative = ejecting.
         public static final double kRollerForwardSpeed = 0.8;

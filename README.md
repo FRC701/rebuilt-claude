@@ -89,6 +89,9 @@ Sepearate PID for deploy and retract helps with slop (maybe).
 Compensate between deploy and retract using kG. Suggested using GravityTypeValue.Arm_Cosine! 
 Didn't know this existed!
 
+Use a timer (like we did) to support the bouncing. A bit different using rotation offsets instead
+of specific positions. 
+
 ## Climber
 
 ## Vision
