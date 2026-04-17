@@ -44,6 +44,10 @@ public final class Constants {
         // Shooter Motors (TalonFX) - RoboRIO CAN bus
         public static final int kLeftShooterID = 31;
         public static final int kRightShooterID = 32;
+
+        // --- CAN IDs (41–50 range reserved for intake) ---
+        public static final int kIntakeDeployId = 41;
+        public static final int kIntakeRollerId = 42;
     }
 
     public static final class SwerveConstants {
@@ -241,6 +245,54 @@ public final class Constants {
                         kSupplyCurrentLimit,
                         kStatorCurrentLimit,
                         kRightRPMMap);
+    }
+
+    /**
+     * Intake hardware constants.
+     *
+     * <p>Deploy motor uses position control so the arm holds at a known angle. Roller motor uses
+     * open-loop duty cycle — no need for closed-loop on a simple intake roller. Both motors are on
+     * the RIO bus because the CANivore is already carrying the swerve hardware and keeping
+     * high-frequency devices together there is cleaner.
+     */
+    public static final class IntakeConstants {
+
+        // --- Motor config ---
+        // Brake on deploy keeps the arm from back-driving under gravity/impact.
+        // Brake on roller ensures it stops quickly when command ends.
+        public static final NeutralModeValue kDeployNeutralMode = NeutralModeValue.Brake;
+        public static final NeutralModeValue kRollerNeutralMode = NeutralModeValue.Brake;
+
+        // Inversion — verify on first power-up; positive output should deploy outward.
+        public static final boolean kDeployInverted = false;
+        public static final boolean kRollerInverted = false;
+
+        // --- Current limits ---
+        // Supply limit protects wiring; stator limit prevents mechanism damage.
+        public static final double kDeploySupplyCurrentLimit = 40.0; // amps
+        public static final double kDeployStatorCurrentLimit = 60.0; // amps
+        public static final double kRollerSupplyCurrentLimit = 30.0; // amps
+        public static final double kRollerStatorCurrentLimit = 40.0; // amps
+
+        // --- Deploy positions (rotations of the motor shaft) ---
+        // TODO: Measure empirically — jog motor and read sensor position in Tuner X.
+        public static final double kDeployedPosition = 10.0; // rotations — placeholder
+        public static final double kRetractedPosition = 0.0; // rotations — home/zero
+
+        // --- Deploy PID gains ---
+        // TODO: Tune with SysId or manual sweep. Start kP low (~0.5) and increase
+        // until the arm snaps to position without oscillating.
+        public static final double kDeployKP = 0.5;
+        public static final double kDeployKI = 0.0; // I term rarely needed for position
+        public static final double kDeployKD = 0.0;
+
+        // Position tolerance — arm is considered "at target" within this many rotations.
+        public static final double kDeployToleranceRotations = 0.5;
+
+        // --- Roller speeds ---
+        // Duty cycle (-1.0 to 1.0). Positive = intaking, negative = ejecting.
+        public static final double kRollerForwardSpeed = 0.8;
+        public static final double kRollerReverseSpeed = -0.8;
     }
 
     public static final class OIConstants {
