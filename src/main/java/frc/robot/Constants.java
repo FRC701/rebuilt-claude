@@ -283,9 +283,19 @@ public final class Constants {
         // Higher kP pushes through linkage slop quickly on the way out.
         // TODO: Tune with manual sweep. Start ~0.5, increase until arm moves
         // crisply without oscillating.
+        //
+        // --- Gravity feedforward ---
+        // kG is a constant voltage (volts) added to the output to counteract gravity.
+        // Tune by finding the minimum voltage that holds the arm stationary at the
+        // hardest point against gravity (usually mid-travel). Start at 0.0 and
+        // increase in small steps (~0.1V) until the arm holds without drifting.
+        // TODO: Tune empirically — kG will likely be higher for retract (lifting)
+        // than deploy (lowering) if the arm geometry changes mechanical advantage
+        // across the range of motion.
         public static final double kDeployKP = 0.5;
         public static final double kDeployKI = 0.0; // I term rarely needed for position
         public static final double kDeployKD = 0.0;
+        public static final double kDeployKG = 0.0; // volts — placeholder
 
         // --- Retract PID gains (Slot 1) ---
         // Softer kP on retract — mechanism is being pulled back and slop is
@@ -295,6 +305,7 @@ public final class Constants {
         public static final double kRetractKP = 0.3;
         public static final double kRetractKI = 0.0;
         public static final double kRetractKD = 0.0;
+        public static final double kRetractKG = 0.0; // volts — placeholder
 
         // Position tolerance — arm is considered "at target" within this many rotations.
         public static final double kDeployToleranceRotations = 0.5;

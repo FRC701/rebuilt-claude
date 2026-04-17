@@ -19,6 +19,14 @@ import frc.robot.Constants.IntakeConstants;
  * <p>If the arm ever jerks hard on deploy and you're worried about mechanism stress, the right fix
  * is adding a kS feedforward to the Position request (not switching to Motion Magic) — it gives the
  * motor a small initial kick without the full trapezoidal profile overhead.
+ * 
+ * Tuning Order
+ * 
+ * 1. Set kP the same on both slots (moderate value, e.g. 0.5)
+ * 2. Increase kG on slot 1 in small steps until the arm lifts reliably without drifting back
+ * 3. Fine-tune kP on each slot independently for crisp position holding
+ * 4. Only split kP between slots if the slop behavior still warrants it after kG is dialed in 
+ *    — you may find equal kP works fine once gravity is compensated
  */
 public class Intake extends SubsystemBase {
 

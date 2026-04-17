@@ -78,6 +78,17 @@ SysID support was added in order to develop the PID values for the shooter.
 
 ## Intake
 
+The intake uses the same module configuration architecture. Interestingly consistent, 
+but seemingly unnecassary. 
+
+Learned about MotionMagic. There is more tuning that could have been done to make MotionMagic
+stay in place at the end. The complexity does not warrant the change.
+
+Sepearate PID for deploy and retract helps with slop (maybe).
+
+Compensate between deploy and retract using kG. Suggested using GravityTypeValue.Arm_Cosine! 
+Didn't know this existed!
+
 ## Climber
 
 ## Vision
