@@ -22,9 +22,10 @@ public class RollerFeed extends Command {
     public RollerFeed(Roller roller, Shooter shooter) {
         m_roller = roller;
         m_shooter = shooter;
-        // Roller is required; Shooter is required to prevent feeding while
-        // a SysId or other shooter command is running.
-        addRequirements(roller, shooter);
+        // Only Roller is required — RollerFeed only reads Shooter state via
+        // isReadyToFire(), it does not command shooter hardware. Requiring
+        // Shooter here would cancel ShooterSetRPM when feeding starts.
+        addRequirements(roller);
     }
 
     @Override

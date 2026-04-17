@@ -189,6 +189,8 @@ public final class Constants {
         public static final double kRightKV = 0.12; // volts per rot/s
         public static final double kRightKA = 0.0; // volts per rot/s²
 
+        public static final double kDefaultRPM = 100.0;
+
         // ── Velocity tolerance ────────────────────────────────────────────────
         // How close to target RPM before we consider the shooter "ready to fire"
         public static final double kVelocityToleranceRPM = 50.0;
