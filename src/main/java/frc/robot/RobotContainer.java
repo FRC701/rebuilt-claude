@@ -33,6 +33,7 @@ import frc.robot.commands.RollerReverse;
 import frc.robot.commands.ShooterSetRPM;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.subsystems.Agitator;
+import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.roller.Roller;
 import frc.robot.subsystems.shooter.Shooter;
@@ -46,6 +47,7 @@ public class RobotContainer {
     private final Swerve m_swerve = new Swerve();
     private final Intake m_intake = new Intake();
     private final Roller m_roller = new Roller();
+    private final Vision m_vision = new Vision();
 
     // ── Controllers ───────────────────────────────────────────────────────────
     private final CommandXboxController m_driverController =
@@ -55,6 +57,8 @@ public class RobotContainer {
     private final SendableChooser<Command> m_autoChooser;
 
     public RobotContainer() {
+        m_swerve.setVision(m_vision);
+
         configurePathPlanner();
         configureDefaultCommands();
         configureButtonBindings();
