@@ -76,6 +76,17 @@ SysID support was added in order to develop the PID values for the shooter.
 
 ## Roller
 
+The roller uses the module architecture as well. Good for multiple module or multiple motor
+subsystems.
+
+The first RollerFeed command required the shooter as well as the roller subsystem. This doesn't
+work because you can't actually shoot. Shooter is used but not required because the shooter is
+only used for reading state not controlling. 
+
+As a result the shooting command is added. The single line button bindings can be amazing if you
+know all the capabilities. In this case `.alongWith` was used, setting up a `ParallelCommandGroup`.
+Nice!
+
 ## Intake
 
 The intake uses the same module configuration architecture. Interestingly consistent, 

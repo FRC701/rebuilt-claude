@@ -25,11 +25,16 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.OIConstants;
+import frc.robot.Constants.ShooterConstants;
 import frc.robot.commands.IntakeDeploy;
 import frc.robot.commands.IntakeReverse;
+import frc.robot.commands.RollerFeed;
+import frc.robot.commands.RollerReverse;
+import frc.robot.commands.ShooterSetRPM;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.subsystems.Agitator;
 import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.roller.Roller;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.swerve.Swerve;
 
@@ -40,6 +45,7 @@ public class RobotContainer {
     private final Shooter m_shooter = new Shooter();
     private final Swerve m_swerve = new Swerve();
     private final Intake m_intake = new Intake();
+    private final Roller m_roller = new Roller();
 
     // ── Controllers ───────────────────────────────────────────────────────────
     private final CommandXboxController m_driverController =
@@ -118,6 +124,21 @@ public class RobotContainer {
         m_driverController.rightBumper().whileTrue(new IntakeDeploy(m_intake));
         m_driverController.leftBumper().whileTrue(new IntakeReverse(m_intake));
         // Note: adjust button assignments to avoid conflicts with existing bindings.
+
+        // Button bindings — adjust to avoid conflicts with existing bindings.
+        // RollerFeed gates on shooter RPM internally, so binding it alongside
+        // ShooterSetRPM on the same trigger makes sense.
+        m_driverController.povDown().whileTrue(new RollerReverse(m_roller));
+
+        // Spin up the shooter and feed balls simultaneously.
+        // ShooterSetRPM owns Shooter; RollerFeed owns Roller.
+        // RollerFeed internally gates on isAtTargetRPM() so balls only
+        // feed once the shooter is ready — no explicit sequencing needed.
+        m_driverController
+                .rightTrigger()
+                .whileTrue(
+                        new ShooterSetRPM(m_shooter, ShooterConstants.kDefaultRPM)
+                                .alongWith(new RollerFeed(m_roller, m_shooter)));
 
         // ── SysId bindings (comment out during normal use) ────────────────────────
         // Hold LB + press A/B/X/Y to run SysId routines.
