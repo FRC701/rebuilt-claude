@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.CANDevices;
 import frc.robot.Constants.SwerveConstants;
+import frc.robot.subsystems.Vision;
 
 /*
  * A few design decisions worth noting:
@@ -54,6 +55,7 @@ public class Swerve extends SubsystemBase {
     private final SwerveModule m_frontRight;
     private final SwerveModule m_backLeft;
     private final SwerveModule m_backRight;
+    private Vision m_vision = null;
 
     // ── Gyro ──────────────────────────────────────────────────────────────────
     private final Pigeon2 m_pigeon;
@@ -160,10 +162,32 @@ public class Swerve extends SubsystemBase {
         SmartDashboard.putData("Field", m_field);
     }
 
+    /**
+     * Registers the vision subsystem for pose estimation fusion. Call this from RobotContainer
+     * after both subsystems are constructed.
+     *
+     * @param vision The Vision subsystem
+     */
+    public void setVision(Vision vision) {
+        m_vision = vision;
+    }
+
     // ── Periodic ──────────────────────────────────────────────────────────────
 
     @Override
     public void periodic() {
+        // Fuse vision measurements into the pose estimator if vision is available.
+        // Vision is checked for null so Swerve works correctly even if vision
+        // is disabled or not yet configured.
+        if (m_vision != null) {
+            m_vision.getEstimatedRobotPose(getPose())
+                    .ifPresent(
+                            estimate ->
+                                    addVisionMeasurement(
+                                            estimate.estimatedPose.toPose2d(),
+                                            estimate.timestampSeconds));
+        }
+
         // Update pose estimator with latest module positions and gyro angle
         m_poseEstimator.update(getGyroYaw(), getModulePositions());
 
