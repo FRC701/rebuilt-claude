@@ -6,8 +6,8 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.OIConstants;
-import frc.robot.Constants.SwerveConstants;
 import frc.robot.subsystems.swerve.Swerve;
+import frc.robot.subsystems.swerve.Swerve.SwerveConstants;
 
 /*
  * A few design decisions worth noting:
