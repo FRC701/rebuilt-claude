@@ -36,6 +36,12 @@ public class LED extends SubsystemBase {
     private final Shooter m_shooter;
     private final Intake m_intake;
 
+    // Pre-allocated control request — reused every loop to avoid GC pressure,
+    // consistent with TalonFX control request pattern used throughout this project.
+    // Range is fixed at construction (full strip, 0 to kNumLEDs) — only color
+    // changes between calls so withColor() mutation is safe to reuse.
+    private final SolidColor m_solidColorRequest = new SolidColor(0, LEDConstants.kNumLEDs);
+
     // Track last state to avoid redundant CANdle writes — CAN bus writes
     // should be minimized to reduce bus load.
     private LEDState m_lastState = null;
@@ -117,6 +123,6 @@ public class LED extends SubsystemBase {
      * @param b Blue (0–255)
      */
     private void setColor(RGBWColor color) {
-        m_candle.setControl(new SolidColor(0, LEDConstants.kNumLEDs).withColor(color));
+        m_candle.setControl(m_solidColorRequest.withColor(color));
     }
 }
