@@ -1,7 +1,6 @@
 package frc.robot;
 
 import com.ctre.phoenix6.CANBus;
-import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.RGBWColor;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
@@ -10,7 +9,6 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
-import frc.robot.subsystems.shooter.ShooterModule;
 
 public final class Constants {
 
@@ -54,95 +52,6 @@ public final class Constants {
         // --- CAN IDs (51–60 range reserved for roller) ---
         public static final int kLeftRollerMotorId = 51;
         public static final int kRightRollerMotorId = 52;
-    }
-
-    public static final class ShooterConstants {
-        public static final NeutralModeValue kNeutralMode = NeutralModeValue.Coast;
-        public static final double kSupplyCurrentLimit = 60.0; // amps
-        public static final double kStatorCurrentLimit = 120.0; // amps
-
-        public static final InvertedValue kLeftShooterInvert =
-                InvertedValue.CounterClockwise_Positive;
-        public static final InvertedValue kRightShooterInvert = InvertedValue.Clockwise_Positive;
-
-        // ── Velocity PID (slot 0) ─────────────────────────────────────────────
-        // TODO: Tune these after SysId characterization
-        public static final double kLeftKP = 0.1;
-        public static final double kLeftKI = 0.0;
-        public static final double kLeftKD = 0.0;
-        public static final double kLeftKS = 0.0; // volts
-        public static final double kLeftKV = 0.12; // volts per rot/s
-        public static final double kLeftKA = 0.0; // volts per rot/s²
-
-        public static final double kRightKP = 0.1;
-        public static final double kRightKI = 0.0;
-        public static final double kRightKD = 0.0;
-        public static final double kRightKS = 0.0; // volts
-        public static final double kRightKV = 0.12; // volts per rot/s
-        public static final double kRightKA = 0.0; // volts per rot/s²
-
-        public static final double kDefaultRPM = 100.0;
-
-        // ── Velocity tolerance ────────────────────────────────────────────────
-        // How close to target RPM before we consider the shooter "ready to fire"
-        public static final double kVelocityToleranceRPM = 50.0;
-
-        // ── Distance → RPM lookup tables ──────────────────────────────────────
-        // TODO: Replace these placeholder values with empirically tested data.
-        // Key   = distance to target in meters
-        // Value = target RPM for that distance
-        // Add as many points as needed — InterpolatingDoubleTreeMap will
-        // smoothly interpolate between them at runtime.
-        public static final double[][] kLeftRPMMap = {
-            {1.0, 2000.0},
-            {2.0, 3000.0},
-            {3.0, 4000.0},
-            {4.0, 5000.0},
-            {5.0, 6000.0}
-        };
-
-        public static final double[][] kRightRPMMap = {
-            {1.0, 2000.0},
-            {2.0, 3000.0},
-            {3.0, 4000.0},
-            {4.0, 5000.0},
-            {5.0, 6000.0}
-        };
-
-        // ── Module configs ────────────────────────────────────────────────────
-        public static final ShooterModule.Config kLeftConfig =
-                new ShooterModule.Config(
-                        "Left",
-                        CANDevices.kLeftShooterID,
-                        CANDevices.kRioBus,
-                        kLeftShooterInvert,
-                        kNeutralMode,
-                        kLeftKP,
-                        kLeftKI,
-                        kLeftKD,
-                        kLeftKS,
-                        kLeftKV,
-                        kLeftKA,
-                        kSupplyCurrentLimit,
-                        kStatorCurrentLimit,
-                        kLeftRPMMap);
-
-        public static final ShooterModule.Config kRightConfig =
-                new ShooterModule.Config(
-                        "Right",
-                        CANDevices.kRightShooterID,
-                        CANDevices.kRioBus,
-                        kRightShooterInvert,
-                        kNeutralMode,
-                        kRightKP,
-                        kRightKI,
-                        kRightKD,
-                        kRightKS,
-                        kRightKV,
-                        kRightKA,
-                        kSupplyCurrentLimit,
-                        kStatorCurrentLimit,
-                        kRightRPMMap);
     }
 
     /**

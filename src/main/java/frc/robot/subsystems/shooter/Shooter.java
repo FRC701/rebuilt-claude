@@ -1,5 +1,13 @@
 package frc.robot.subsystems.shooter;
 
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Constants;
+
 /**
  * Shooter subsystem manages two independent ShooterModule instances.
  *
@@ -11,21 +19,104 @@ package frc.robot.subsystems.shooter;
  * regardless of how many modules are active. - Independent enable/disable is delegated to each
  * ShooterModule so this class stays clean and free of per-motor state tracking.
  */
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.Constants.ShooterConstants;
-
 public class Shooter extends SubsystemBase {
+
+    public static final class ShooterConstants {
+        public static final NeutralModeValue kNeutralMode = NeutralModeValue.Coast;
+        public static final double kSupplyCurrentLimit = 60.0; // amps
+        public static final double kStatorCurrentLimit = 120.0; // amps
+
+        public static final InvertedValue kLeftShooterInvert =
+                InvertedValue.CounterClockwise_Positive;
+        public static final InvertedValue kRightShooterInvert = InvertedValue.Clockwise_Positive;
+
+        // ── Velocity PID (slot 0) ─────────────────────────────────────────────
+        // TODO: Tune these after SysId characterization
+        public static final double kLeftKP = 0.1;
+        public static final double kLeftKI = 0.0;
+        public static final double kLeftKD = 0.0;
+        public static final double kLeftKS = 0.0; // volts
+        public static final double kLeftKV = 0.12; // volts per rot/s
+        public static final double kLeftKA = 0.0; // volts per rot/s²
+
+        public static final double kRightKP = 0.1;
+        public static final double kRightKI = 0.0;
+        public static final double kRightKD = 0.0;
+        public static final double kRightKS = 0.0; // volts
+        public static final double kRightKV = 0.12; // volts per rot/s
+        public static final double kRightKA = 0.0; // volts per rot/s²
+
+        public static final double kDefaultRPM = 100.0;
+
+        // ── Velocity tolerance ────────────────────────────────────────────────
+        // How close to target RPM before we consider the shooter "ready to fire"
+        public static final double kVelocityToleranceRPM = 50.0;
+
+        // ── Distance → RPM lookup tables ──────────────────────────────────────
+        // TODO: Replace these placeholder values with empirically tested data.
+        // Key   = distance to target in meters
+        // Value = target RPM for that distance
+        // Add as many points as needed — InterpolatingDoubleTreeMap will
+        // smoothly interpolate between them at runtime.
+        public static final double[][] kLeftRPMMap = {
+            {1.0, 2000.0},
+            {2.0, 3000.0},
+            {3.0, 4000.0},
+            {4.0, 5000.0},
+            {5.0, 6000.0}
+        };
+
+        public static final double[][] kRightRPMMap = {
+            {1.0, 2000.0},
+            {2.0, 3000.0},
+            {3.0, 4000.0},
+            {4.0, 5000.0},
+            {5.0, 6000.0}
+        };
+
+        // ── Module configs ────────────────────────────────────────────────────
+        public static final ShooterModule.Config kLeftConfig =
+                new ShooterModule.Config(
+                        "Left",
+                        Constants.CANDevices.kLeftShooterID,
+                        Constants.CANDevices.kRioBus,
+                        kLeftShooterInvert,
+                        kNeutralMode,
+                        kLeftKP,
+                        kLeftKI,
+                        kLeftKD,
+                        kLeftKS,
+                        kLeftKV,
+                        kLeftKA,
+                        kSupplyCurrentLimit,
+                        kStatorCurrentLimit,
+                        kLeftRPMMap);
+
+        public static final ShooterModule.Config kRightConfig =
+                new ShooterModule.Config(
+                        "Right",
+                        Constants.CANDevices.kRightShooterID,
+                        Constants.CANDevices.kRioBus,
+                        kRightShooterInvert,
+                        kNeutralMode,
+                        kRightKP,
+                        kRightKI,
+                        kRightKD,
+                        kRightKS,
+                        kRightKV,
+                        kRightKA,
+                        kSupplyCurrentLimit,
+                        kStatorCurrentLimit,
+                        kRightRPMMap);
+    }
 
     // ── Modules ───────────────────────────────────────────────────────────────
     private final ShooterModule m_left;
     private final ShooterModule m_right;
 
     public Shooter() {
-        m_left = new ShooterModule(ShooterConstants.kLeftConfig);
-        m_right = new ShooterModule(ShooterConstants.kRightConfig);
+        m_left = new ShooterModule(Shooter.ShooterConstants.kLeftConfig);
+        m_right = new ShooterModule(Shooter.ShooterConstants.kRightConfig);
 
         // Initialize SysId routines — must be called after modules are constructed,
         // passing this subsystem as the requirement owner.
@@ -77,8 +168,8 @@ public class Shooter extends SubsystemBase {
      * Use this to gate feeding a game piece.
      */
     public boolean isReadyToFire() {
-        return m_left.isAtTargetRPM(ShooterConstants.kVelocityToleranceRPM)
-                && m_right.isAtTargetRPM(ShooterConstants.kVelocityToleranceRPM);
+        return m_left.isAtTargetRPM(Shooter.ShooterConstants.kVelocityToleranceRPM)
+                && m_right.isAtTargetRPM(Shooter.ShooterConstants.kVelocityToleranceRPM);
     }
 
     // ── Enable / Disable ──────────────────────────────────────────────────────
