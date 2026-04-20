@@ -105,9 +105,22 @@ of specific positions.
 
 ## Climber
 
+Skipped for now
+
 ## Vision
+
+A bit of trouble getting compile to work. Had to find the latest API.
 
 ## LEDs
 
+Tried to use the Phoenix 5 API. The Phoenix 6 API supports the CANDle. Rewrote the code three times 
+in order to get it correct.
 
+# Notes
 
+1. Be aware of garbage collector pressure in periodic. Direct or indirect allocations (ie new) are to be
+avoided.
+2. Use setters and accessors
+3. Use Requires
+4. Use Command subclasses. Save instant commands for bindings.
+5. Use class local contstants
