@@ -14,11 +14,26 @@ package frc.robot.subsystems;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.AgitatorConstants;
 import frc.robot.Constants.CANDevices;
 
 public class Agitator extends SubsystemBase {
+
+    public static final class AgitatorConstants {
+        public static final InvertedValue kLeftAgitatorInvert =
+                InvertedValue.CounterClockwise_Positive;
+        public static final InvertedValue kRightAgitatorInvert = InvertedValue.Clockwise_Positive;
+
+        public static final NeutralModeValue kNeutralMode = NeutralModeValue.Brake;
+
+        public static final double kSupplyCurrentLimit = 40.0; // amps
+        public static final double kStatorCurrentLimit = 80.0; // amps
+
+        // TODO: Tune this to the desired agitator speed (0.0 to 1.0)
+        public static final double kDefaultSpeed = 0.5;
+    }
 
     // ── Hardware ──────────────────────────────────────────────────────────────
     private final TalonFX m_leftMotor;
@@ -32,11 +47,13 @@ public class Agitator extends SubsystemBase {
         m_leftMotor = new TalonFX(CANDevices.kLeftAgitatorID, CANDevices.kRioBus);
 
         TalonFXConfiguration leftConfig = new TalonFXConfiguration();
-        leftConfig.MotorOutput.Inverted = AgitatorConstants.kLeftAgitatorInvert;
-        leftConfig.MotorOutput.NeutralMode = AgitatorConstants.kNeutralMode;
-        leftConfig.CurrentLimits.SupplyCurrentLimit = AgitatorConstants.kSupplyCurrentLimit;
+        leftConfig.MotorOutput.Inverted = Agitator.AgitatorConstants.kLeftAgitatorInvert;
+        leftConfig.MotorOutput.NeutralMode = Agitator.AgitatorConstants.kNeutralMode;
+        leftConfig.CurrentLimits.SupplyCurrentLimit =
+                Agitator.AgitatorConstants.kSupplyCurrentLimit;
         leftConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
-        leftConfig.CurrentLimits.StatorCurrentLimit = AgitatorConstants.kStatorCurrentLimit;
+        leftConfig.CurrentLimits.StatorCurrentLimit =
+                Agitator.AgitatorConstants.kStatorCurrentLimit;
         leftConfig.CurrentLimits.StatorCurrentLimitEnable = true;
         m_leftMotor.getConfigurator().apply(leftConfig);
 
@@ -44,11 +61,13 @@ public class Agitator extends SubsystemBase {
         m_rightMotor = new TalonFX(CANDevices.kRightAgitatorID, CANDevices.kRioBus);
 
         TalonFXConfiguration rightConfig = new TalonFXConfiguration();
-        rightConfig.MotorOutput.Inverted = AgitatorConstants.kRightAgitatorInvert;
-        rightConfig.MotorOutput.NeutralMode = AgitatorConstants.kNeutralMode;
-        rightConfig.CurrentLimits.SupplyCurrentLimit = AgitatorConstants.kSupplyCurrentLimit;
+        rightConfig.MotorOutput.Inverted = Agitator.AgitatorConstants.kRightAgitatorInvert;
+        rightConfig.MotorOutput.NeutralMode = Agitator.AgitatorConstants.kNeutralMode;
+        rightConfig.CurrentLimits.SupplyCurrentLimit =
+                Agitator.AgitatorConstants.kSupplyCurrentLimit;
         rightConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
-        rightConfig.CurrentLimits.StatorCurrentLimit = AgitatorConstants.kStatorCurrentLimit;
+        rightConfig.CurrentLimits.StatorCurrentLimit =
+                Agitator.AgitatorConstants.kStatorCurrentLimit;
         rightConfig.CurrentLimits.StatorCurrentLimitEnable = true;
         m_rightMotor.getConfigurator().apply(rightConfig);
     }
@@ -71,7 +90,7 @@ public class Agitator extends SubsystemBase {
      * frc.robot.Constants.AgitatorConstants#kDefaultSpeed}.
      */
     public void run() {
-        run(AgitatorConstants.kDefaultSpeed);
+        run(Agitator.AgitatorConstants.kDefaultSpeed);
     }
 
     /**
@@ -85,7 +104,7 @@ public class Agitator extends SubsystemBase {
 
     /** Reverses both agitators at the default speed. */
     public void reverse() {
-        reverse(AgitatorConstants.kDefaultSpeed);
+        reverse(Agitator.AgitatorConstants.kDefaultSpeed);
     }
 
     /**
@@ -108,9 +127,9 @@ public class Agitator extends SubsystemBase {
     /** Returns true if either agitator motor is drawing above its supply limit. */
     public boolean isStalled() {
         return m_leftMotor.getSupplyCurrent().getValueAsDouble()
-                        >= AgitatorConstants.kSupplyCurrentLimit
+                        >= Agitator.AgitatorConstants.kSupplyCurrentLimit
                 || m_rightMotor.getSupplyCurrent().getValueAsDouble()
-                        >= AgitatorConstants.kSupplyCurrentLimit;
+                        >= Agitator.AgitatorConstants.kSupplyCurrentLimit;
     }
 
     // ── Periodic ──────────────────────────────────────────────────────────────

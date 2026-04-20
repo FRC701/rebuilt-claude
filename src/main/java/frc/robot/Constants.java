@@ -156,20 +156,6 @@ public final class Constants {
         public static final double kSteerKD = 0.5;
     }
 
-    public static final class AgitatorConstants {
-        public static final InvertedValue kLeftAgitatorInvert =
-                InvertedValue.CounterClockwise_Positive;
-        public static final InvertedValue kRightAgitatorInvert = InvertedValue.Clockwise_Positive;
-
-        public static final NeutralModeValue kNeutralMode = NeutralModeValue.Brake;
-
-        public static final double kSupplyCurrentLimit = 40.0; // amps
-        public static final double kStatorCurrentLimit = 80.0; // amps
-
-        // TODO: Tune this to the desired agitator speed (0.0 to 1.0)
-        public static final double kDefaultSpeed = 0.5;
-    }
-
     public static final class ShooterConstants {
         public static final NeutralModeValue kNeutralMode = NeutralModeValue.Coast;
         public static final double kSupplyCurrentLimit = 60.0; // amps
