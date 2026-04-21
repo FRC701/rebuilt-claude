@@ -1,7 +1,6 @@
 package frc.robot;
 
 import com.ctre.phoenix6.CANBus;
-import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.RGBWColor;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
@@ -52,36 +51,6 @@ public final class Constants {
         // --- CAN IDs (51–60 range reserved for roller) ---
         public static final int kLeftRollerMotorId = 51;
         public static final int kRightRollerMotorId = 52;
-    }
-
-    /**
-     * Roller subsystem constants.
-     *
-     * <p>The roller moves balls from the hopper into the shooter using two open-loop duty cycle
-     * motors, one per side. Reverse is supported for unjamming. CAN IDs 51-60 are reserved for the
-     * roller subsystem.
-     */
-    public static final class RollerConstants {
-        // --- Motor config ---
-        // Brake neutral mode stops balls immediately when command ends,
-        // preventing balls from drifting into the shooter unintentionally.
-        public static final NeutralModeValue kNeutralMode = NeutralModeValue.Brake;
-
-        // Inversion — verify on first power-up. Both motors should move
-        // balls toward the shooter when running forward.
-        public static final boolean kLeftInverted = false;
-        public static final boolean kRightInverted = true; // typically mirrored
-
-        // --- Current limits ---
-        public static final double kSupplyCurrentLimit = 30.0; // amps
-        public static final double kStatorCurrentLimit = 40.0; // amps
-
-        // --- Roller speeds ---
-        // Duty cycle (-1.0 to 1.0).
-        // TODO: Tune empirically — start conservative and increase until
-        // balls feed reliably without jamming.
-        public static final double kForwardSpeed = 0.8;
-        public static final double kReverseSpeed = -0.8;
     }
 
     /**
