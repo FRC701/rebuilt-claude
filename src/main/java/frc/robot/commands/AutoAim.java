@@ -12,7 +12,6 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.subsystems.roller.Roller;
 import frc.robot.subsystems.shooter.Shooter;
-import frc.robot.subsystems.shooter.Shooter.ShooterConstants;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.Swerve.SwerveConstants;
 
@@ -90,14 +89,19 @@ public class AutoAim extends Command {
 
     @Override
     public void execute() {
-        // ── Compute desired heading to hub ────────────────────────────────────
+        // ── Compute distance and heading to hub ───────────────────────────────
         Translation2d hubCenter = getHubCenter();
         Translation2d robotPosition = m_swerve.getPose().getTranslation();
 
-        // Vector from robot to hub — atan2 gives the field-relative angle.
         double dx = hubCenter.getX() - robotPosition.getX();
         double dy = hubCenter.getY() - robotPosition.getY();
+        double distanceMeters = Math.sqrt(dx * dx + dy * dy);
         double targetHeadingRadians = Math.atan2(dy, dx);
+
+        // ── Shooter spin-up at distance-interpolated RPM ──────────────────────
+        // Spin up every loop so the shooter is ready as soon as alignment
+        // is achieved. RPM tracks automatically as the robot moves.
+        m_shooter.setRPMFromDistance(distanceMeters);
 
         // ── Rotation correction via ProfiledPID ───────────────────────────────
         double rotationCorrection =
@@ -109,11 +113,6 @@ public class AutoAim extends Command {
         double ySpeed = -m_controller.getLeftX() * SwerveConstants.kTeleopMaxSpeedMPS;
 
         m_swerve.drive(new ChassisSpeeds(xSpeed, ySpeed, rotationCorrection), true);
-
-        // ── Shooter spin-up ───────────────────────────────────────────────────
-        // Spin up every loop so the shooter is ready as soon as alignment
-        // is achieved — don't wait until aligned to start spinning.
-        m_shooter.setRPM(ShooterConstants.kDefaultRPM);
 
         // ── Fire — only when aligned AND shooter is ready ─────────────────────
         boolean aligned = m_headingController.atSetpoint();
@@ -129,6 +128,7 @@ public class AutoAim extends Command {
         SmartDashboard.putBoolean("AutoAim/Aligned", aligned);
         SmartDashboard.putBoolean("AutoAim/ShooterReady", shooterReady);
         SmartDashboard.putBoolean("AutoAim/Firing", aligned && shooterReady);
+        SmartDashboard.putNumber("AutoAim/DistanceMeters", distanceMeters);
         SmartDashboard.putNumber("AutoAim/TargetHeadingDeg", Math.toDegrees(targetHeadingRadians));
         SmartDashboard.putNumber(
                 "AutoAim/HeadingErrorDeg", Math.toDegrees(m_headingController.getPositionError()));
