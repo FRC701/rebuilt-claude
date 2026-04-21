@@ -60,7 +60,6 @@ public class LED extends SubsystemBase {
      * if multiple conditions are true simultaneously.
      */
     public static final class LEDConstants {
-        public static final int kCANdleID = 60; // TODO: confirm CAN ID
         public static final int kNumLEDs = 64; // TODO: confirm LED count
 
         // --- Colors (R, G, B) ---
@@ -78,7 +77,7 @@ public class LED extends SubsystemBase {
         m_shooter = shooter;
         m_intake = intake;
 
-        m_candle = new CANdle(LED.LEDConstants.kCANdleID, CANDevices.kRioBus);
+        m_candle = new CANdle(CANDevices.kCANdleID, CANDevices.kRioBus);
 
         // Configure strip type and disable onboard status LED when actively
         // controlling — uses Phoenix 6 configurator pattern consistent with

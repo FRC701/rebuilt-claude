@@ -44,6 +44,9 @@ public final class Constants {
         // --- CAN IDs (51–60 range reserved for roller) ---
         public static final int kLeftRollerMotorId = 51;
         public static final int kRightRollerMotorId = 52;
+
+        // --- CAN IDs (61–70 range reserved for roller) ---
+        public static final int kCANdleID = 61;
     }
 
     public static final class OIConstants {
