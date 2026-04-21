@@ -7,7 +7,6 @@ import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import frc.robot.Constants.IntakeConstants;
 
 /**
  * Low-level wrapper around a single TalonFX for the intake.
@@ -63,17 +62,17 @@ public class IntakeModule {
 
         // PID slot 0 — used by the deploy motor for position control.
         // Roller module will never call setPosition(), so these gains are harmless.
-        cfg.Slot0.kP = IntakeConstants.kDeployKP;
-        cfg.Slot0.kI = IntakeConstants.kDeployKI;
-        cfg.Slot0.kD = IntakeConstants.kDeployKD;
-        cfg.Slot0.kG = IntakeConstants.kDeployKG;
+        cfg.Slot0.kP = Intake.IntakeConstants.kDeployKP;
+        cfg.Slot0.kI = Intake.IntakeConstants.kDeployKI;
+        cfg.Slot0.kD = Intake.IntakeConstants.kDeployKD;
+        cfg.Slot0.kG = Intake.IntakeConstants.kDeployKG;
         cfg.Slot0.GravityType = GravityTypeValue.Arm_Cosine;
 
         // Slot 1 — retract direction, softer gains to avoid slamming the hard stop.
-        cfg.Slot1.kP = IntakeConstants.kRetractKP;
-        cfg.Slot1.kI = IntakeConstants.kRetractKI;
-        cfg.Slot1.kD = IntakeConstants.kRetractKD;
-        cfg.Slot1.kG = IntakeConstants.kRetractKG;
+        cfg.Slot1.kP = Intake.IntakeConstants.kRetractKP;
+        cfg.Slot1.kI = Intake.IntakeConstants.kRetractKI;
+        cfg.Slot1.kD = Intake.IntakeConstants.kRetractKD;
+        cfg.Slot1.kG = Intake.IntakeConstants.kRetractKG;
         cfg.Slot1.GravityType = GravityTypeValue.Arm_Cosine;
 
         m_motor.getConfigurator().apply(cfg);
