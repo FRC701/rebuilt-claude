@@ -3,6 +3,7 @@ package frc.robot;
 import com.ctre.phoenix6.CANBus;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
 
 public final class Constants {
 
@@ -71,5 +72,17 @@ public final class Constants {
                 new Translation2d(Units.inchesToMeters(297.0), Units.inchesToMeters(161.6));
         public static final Translation2d kRedHubCenter =
                 new Translation2d(Units.inchesToMeters(354.2), Units.inchesToMeters(161.6));
+
+        /**
+         * Returns the current alliance's hub center from FieldConstants. Used by both the right
+         * trigger binding and AutoAim so hub position is never duplicated in RobotContainer.
+         */
+        public static Translation2d getHubCenter() {
+            var alliance = DriverStation.getAlliance();
+            if (alliance.isPresent() && alliance.get() == DriverStation.Alliance.Red) {
+                return FieldConstants.kRedHubCenter;
+            }
+            return FieldConstants.kBlueHubCenter;
+        }
     }
 }

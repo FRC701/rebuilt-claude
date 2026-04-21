@@ -4,8 +4,6 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -90,7 +88,7 @@ public class AutoAim extends Command {
     @Override
     public void execute() {
         // ── Compute distance and heading to hub ───────────────────────────────
-        Translation2d hubCenter = getHubCenter();
+        Translation2d hubCenter = FieldConstants.getHubCenter();
         Translation2d robotPosition = m_swerve.getPose().getTranslation();
 
         double dx = hubCenter.getX() - robotPosition.getX();
@@ -144,19 +142,5 @@ public class AutoAim extends Command {
     @Override
     public boolean isFinished() {
         return false;
-    }
-
-    // ── Private Helpers ───────────────────────────────────────────────────────
-
-    /**
-     * Returns the field position of the current alliance's hub center. Defaults to blue hub if
-     * alliance is unknown — safe for testing without FMS connected.
-     */
-    private Translation2d getHubCenter() {
-        var alliance = DriverStation.getAlliance();
-        if (alliance.isPresent() && alliance.get() == Alliance.Red) {
-            return FieldConstants.kRedHubCenter;
-        }
-        return FieldConstants.kBlueHubCenter;
     }
 }

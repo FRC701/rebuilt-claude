@@ -24,13 +24,14 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.OIConstants;
 import frc.robot.commands.AutoAim;
 import frc.robot.commands.IntakeDeploy;
 import frc.robot.commands.IntakeReverse;
 import frc.robot.commands.RollerFeed;
 import frc.robot.commands.RollerReverse;
-import frc.robot.commands.ShooterSetRPM;
+import frc.robot.commands.ShooterSetRPMFromDistance;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.subsystems.Agitator;
 import frc.robot.subsystems.Vision;
@@ -136,14 +137,18 @@ public class RobotContainer {
         // ShooterSetRPM on the same trigger makes sense.
         m_driverController.povDown().whileTrue(new RollerReverse(m_roller));
 
-        // Spin up the shooter and feed balls simultaneously.
-        // ShooterSetRPM owns Shooter; RollerFeed owns Roller.
-        // RollerFeed internally gates on isAtTargetRPM() so balls only
-        // feed once the shooter is ready — no explicit sequencing needed.
+        // Right trigger — spin up shooter at distance-interpolated RPM and feed when ready.
+        // Distance is recalculated every loop from the robot's current pose to the
+        // alliance hub center, so RPM tracks automatically as the robot moves.
         m_driverController
                 .rightTrigger()
                 .whileTrue(
-                        new ShooterSetRPM(m_shooter, Shooter.ShooterConstants.kDefaultRPM)
+                        new ShooterSetRPMFromDistance(
+                                        m_shooter,
+                                        () ->
+                                                m_swerve.getPose()
+                                                        .getTranslation()
+                                                        .getDistance(FieldConstants.getHubCenter()))
                                 .alongWith(new RollerFeed(m_roller, m_shooter)));
 
         // ── SysId bindings (comment out during normal use) ────────────────────────
