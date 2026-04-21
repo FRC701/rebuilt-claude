@@ -124,8 +124,8 @@ public class RobotContainer {
         // Button bindings — add to configureButtonBindings()
         // whileTrue retracts and stops roller automatically when button is released,
         // triggering IntakeDeploy.end().
-        m_driverController.rightBumper().whileTrue(new IntakeDeploy(m_intake));
-        m_driverController.leftBumper().whileTrue(new IntakeReverse(m_intake));
+        m_driverController.rightBumper().toggleOnTrue(new IntakeDeploy(m_intake));
+        m_driverController.leftBumper().toggleOnTrue(new IntakeReverse(m_intake));
         // Note: adjust button assignments to avoid conflicts with existing bindings.
 
         // Button bindings — adjust to avoid conflicts with existing bindings.
