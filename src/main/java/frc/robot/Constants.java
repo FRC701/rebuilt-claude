@@ -73,16 +73,44 @@ public final class Constants {
         public static final Translation2d kRedHubCenter =
                 new Translation2d(Units.inchesToMeters(354.2), Units.inchesToMeters(161.6));
 
+        // Cached hub center — null until alliance is confirmed by FMS.
+        // Once set, alliance does not change during a match.
+        private static Translation2d kCachedHubCenter = null;
+
         /**
-         * Returns the current alliance's hub center from FieldConstants. Used by both the right
-         * trigger binding and AutoAim so hub position is never duplicated in RobotContainer.
+         * Returns the hub center for the current alliance, caching the result once the alliance is
+         * confirmed by FMS.
+         *
+         * <p>Returns the blue hub default if alliance is not yet known — callers should avoid
+         * relying on this value before FMS connects. The cache is populated on the first call where
+         * alliance is present, and remains stable for the rest of the match.
          */
         public static Translation2d getHubCenter() {
-            var alliance = DriverStation.getAlliance();
-            if (alliance.isPresent() && alliance.get() == DriverStation.Alliance.Red) {
-                return FieldConstants.kRedHubCenter;
+            if (kCachedHubCenter != null) {
+                return kCachedHubCenter;
             }
-            return FieldConstants.kBlueHubCenter;
+
+            var alliance = DriverStation.getAlliance();
+            if (alliance.isPresent()) {
+                // Alliance confirmed — cache it for the rest of the match.
+                kCachedHubCenter =
+                        alliance.get() == DriverStation.Alliance.Red
+                                ? kRedHubCenter
+                                : kBlueHubCenter;
+                return kCachedHubCenter;
+            }
+
+            // Alliance not yet known — return blue default without caching
+            // so we try again next call.
+            return kBlueHubCenter;
+        }
+
+        /**
+         * Clears the cached hub center. Call this from Robot.autonomousInit() or Robot.teleopInit()
+         * if the alliance could change between matches during testing without FMS.
+         */
+        public static void clearHubCenterCache() {
+            kCachedHubCenter = null;
         }
     }
 }
