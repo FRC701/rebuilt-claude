@@ -8,7 +8,6 @@ import com.ctre.phoenix6.signals.StatusLedWhenActiveValue;
 import com.ctre.phoenix6.signals.StripTypeValue;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.CANDevices;
-import frc.robot.Constants.LEDConstants;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooter.Shooter;
 
@@ -40,7 +39,7 @@ public class LED extends SubsystemBase {
     // consistent with TalonFX control request pattern used throughout this project.
     // Range is fixed at construction (full strip, 0 to kNumLEDs) — only color
     // changes between calls so withColor() mutation is safe to reuse.
-    private final SolidColor m_solidColorRequest = new SolidColor(0, LEDConstants.kNumLEDs);
+    private final SolidColor m_solidColorRequest = new SolidColor(0, LED.LEDConstants.kNumLEDs);
 
     // Track last state to avoid redundant CANdle writes — CAN bus writes
     // should be minimized to reduce bus load.
@@ -53,11 +52,32 @@ public class LED extends SubsystemBase {
         DEFAULT
     }
 
+    /**
+     * LED constants for the CANdle strip.
+     *
+     * <p>A single CANdle drives the full LED strip. Priority order for state display (highest to
+     * lowest): shooter ready, intake deployed, default (red). This means shooter ready always wins
+     * if multiple conditions are true simultaneously.
+     */
+    public static final class LEDConstants {
+        public static final int kNumLEDs = 64; // TODO: confirm LED count
+
+        // --- Colors (R, G, B) ---
+        // Shooter ready — green signals the driver it is safe to feed.
+        public static final RGBWColor kShooterReadyColor = new RGBWColor(0, 255, 0); // green
+
+        // Intake deployed — orange signals the driver the intake is out.
+        public static final RGBWColor kIntakeDeployedColor = new RGBWColor(255, 165, 0); // orange
+
+        // Default — red when no special condition is active.
+        public static final RGBWColor kDefaultColor = new RGBWColor(255, 0, 0); // red
+    }
+
     public LED(Shooter shooter, Intake intake) {
         m_shooter = shooter;
         m_intake = intake;
 
-        m_candle = new CANdle(LEDConstants.kCANdleID, CANDevices.kRioBus);
+        m_candle = new CANdle(CANDevices.kCANdleID, CANDevices.kRioBus);
 
         // Configure strip type and disable onboard status LED when actively
         // controlling — uses Phoenix 6 configurator pattern consistent with
@@ -83,14 +103,14 @@ public class LED extends SubsystemBase {
 
         switch (desiredState) {
             case SHOOTER_READY:
-                setColor(LEDConstants.kShooterReadyColor);
+                setColor(LED.LEDConstants.kShooterReadyColor);
                 break;
             case INTAKE_DEPLOYED:
-                setColor(LEDConstants.kIntakeDeployedColor);
+                setColor(LED.LEDConstants.kIntakeDeployedColor);
                 break;
             case DEFAULT:
             default:
-                setColor(LEDConstants.kDefaultColor);
+                setColor(LED.LEDConstants.kDefaultColor);
                 break;
         }
     }

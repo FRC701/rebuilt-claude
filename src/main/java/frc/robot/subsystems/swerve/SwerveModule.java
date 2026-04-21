@@ -12,7 +12,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.Constants.CANDevices;
-import frc.robot.Constants.SwerveConstants;
 
 public class SwerveModule {
 
@@ -58,31 +57,33 @@ public class SwerveModule {
 
         CANcoderConfiguration canCoderConfig = new CANcoderConfiguration();
         canCoderConfig.MagnetSensor.MagnetOffset = canCoderOffset.getRotations();
-        canCoderConfig.MagnetSensor.SensorDirection = SwerveConstants.kCanCoderDirection;
+        canCoderConfig.MagnetSensor.SensorDirection = Swerve.SwerveConstants.kCanCoderDirection;
         m_canCoder.getConfigurator().apply(canCoderConfig);
 
         // ── Steer Motor ───────────────────────────────────────────────────────
         m_steerMotor = new TalonFX(steerMotorID, CANDevices.kCanIvoreBus);
 
         TalonFXConfiguration steerConfig = new TalonFXConfiguration();
-        steerConfig.MotorOutput.Inverted = SwerveConstants.kSteerInvert;
-        steerConfig.MotorOutput.NeutralMode = SwerveConstants.kSteerNeutralMode;
+        steerConfig.MotorOutput.Inverted = Swerve.SwerveConstants.kSteerInvert;
+        steerConfig.MotorOutput.NeutralMode = Swerve.SwerveConstants.kSteerNeutralMode;
 
         // Use CANcoder as remote sensor for absolute steer position
         steerConfig.Feedback.FeedbackRemoteSensorID = canCoderID;
         steerConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
         steerConfig.Feedback.SensorToMechanismRatio = 1.0;
-        steerConfig.Feedback.RotorToSensorRatio = SwerveConstants.kSteerGearRatio;
+        steerConfig.Feedback.RotorToSensorRatio = Swerve.SwerveConstants.kSteerGearRatio;
 
         // Steer PID (slot 0)
-        steerConfig.Slot0.kP = SwerveConstants.kSteerKP;
-        steerConfig.Slot0.kI = SwerveConstants.kSteerKI;
-        steerConfig.Slot0.kD = SwerveConstants.kSteerKD;
+        steerConfig.Slot0.kP = Swerve.SwerveConstants.kSteerKP;
+        steerConfig.Slot0.kI = Swerve.SwerveConstants.kSteerKI;
+        steerConfig.Slot0.kD = Swerve.SwerveConstants.kSteerKD;
 
         // Current limits
-        steerConfig.CurrentLimits.SupplyCurrentLimit = SwerveConstants.kSteerSupplyCurrentLimit;
+        steerConfig.CurrentLimits.SupplyCurrentLimit =
+                Swerve.SwerveConstants.kSteerSupplyCurrentLimit;
         steerConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
-        steerConfig.CurrentLimits.StatorCurrentLimit = SwerveConstants.kSteerStatorCurrentLimit;
+        steerConfig.CurrentLimits.StatorCurrentLimit =
+                Swerve.SwerveConstants.kSteerStatorCurrentLimit;
         steerConfig.CurrentLimits.StatorCurrentLimitEnable = true;
 
         // Wrap steer position so the module never rotates more than 180 degrees
@@ -95,20 +96,22 @@ public class SwerveModule {
 
         TalonFXConfiguration driveConfig = new TalonFXConfiguration();
         driveConfig.MotorOutput.Inverted = driveInverted;
-        driveConfig.MotorOutput.NeutralMode = SwerveConstants.kDriveNeutralMode;
+        driveConfig.MotorOutput.NeutralMode = Swerve.SwerveConstants.kDriveNeutralMode;
 
         // Drive PID + feedforward (slot 0)
-        driveConfig.Slot0.kP = SwerveConstants.kDriveKP;
-        driveConfig.Slot0.kI = SwerveConstants.kDriveKI;
-        driveConfig.Slot0.kD = SwerveConstants.kDriveKD;
-        driveConfig.Slot0.kS = SwerveConstants.kDriveKS;
-        driveConfig.Slot0.kV = SwerveConstants.kDriveKV;
-        driveConfig.Slot0.kA = SwerveConstants.kDriveKA;
+        driveConfig.Slot0.kP = Swerve.SwerveConstants.kDriveKP;
+        driveConfig.Slot0.kI = Swerve.SwerveConstants.kDriveKI;
+        driveConfig.Slot0.kD = Swerve.SwerveConstants.kDriveKD;
+        driveConfig.Slot0.kS = Swerve.SwerveConstants.kDriveKS;
+        driveConfig.Slot0.kV = Swerve.SwerveConstants.kDriveKV;
+        driveConfig.Slot0.kA = Swerve.SwerveConstants.kDriveKA;
 
         // Current limits
-        driveConfig.CurrentLimits.SupplyCurrentLimit = SwerveConstants.kDriveSupplyCurrentLimit;
+        driveConfig.CurrentLimits.SupplyCurrentLimit =
+                Swerve.SwerveConstants.kDriveSupplyCurrentLimit;
         driveConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
-        driveConfig.CurrentLimits.StatorCurrentLimit = SwerveConstants.kDriveStatorCurrentLimit;
+        driveConfig.CurrentLimits.StatorCurrentLimit =
+                Swerve.SwerveConstants.kDriveStatorCurrentLimit;
         driveConfig.CurrentLimits.StatorCurrentLimitEnable = true;
 
         m_driveMotor.getConfigurator().apply(driveConfig);
@@ -131,8 +134,8 @@ public class SwerveModule {
         // Convert m/s to rotations/s for TalonFX velocity control
         double driveRotationsPerSecond =
                 optimized.speedMetersPerSecond
-                        / SwerveConstants.kWheelCircumference
-                        * SwerveConstants.kDriveGearRatio;
+                        / Swerve.SwerveConstants.kWheelCircumference
+                        * Swerve.SwerveConstants.kDriveGearRatio;
 
         m_driveMotor.setControl(m_driveVelocityRequest.withVelocity(driveRotationsPerSecond));
 
@@ -180,15 +183,15 @@ public class SwerveModule {
     /** Returns the drive position in meters. Used by SysId. */
     public double getDrivePositionMeters() {
         return m_driveMotor.getPosition().getValueAsDouble()
-                / SwerveConstants.kDriveGearRatio
-                * SwerveConstants.kWheelCircumference;
+                / Swerve.SwerveConstants.kDriveGearRatio
+                * Swerve.SwerveConstants.kWheelCircumference;
     }
 
     /** Returns the drive velocity in m/s. Used by SysId. */
     public double getDriveVelocityMPS() {
         return m_driveMotor.getVelocity().getValueAsDouble()
-                / SwerveConstants.kDriveGearRatio
-                * SwerveConstants.kWheelCircumference;
+                / Swerve.SwerveConstants.kDriveGearRatio
+                * Swerve.SwerveConstants.kWheelCircumference;
     }
 
     // ── Private Helpers ───────────────────────────────────────────────────────

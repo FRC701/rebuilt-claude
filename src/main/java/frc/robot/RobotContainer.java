@@ -25,7 +25,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.OIConstants;
-import frc.robot.Constants.ShooterConstants;
 import frc.robot.commands.IntakeDeploy;
 import frc.robot.commands.IntakeReverse;
 import frc.robot.commands.RollerFeed;
@@ -141,7 +140,7 @@ public class RobotContainer {
         m_driverController
                 .rightTrigger()
                 .whileTrue(
-                        new ShooterSetRPM(m_shooter, ShooterConstants.kDefaultRPM)
+                        new ShooterSetRPM(m_shooter, Shooter.ShooterConstants.kDefaultRPM)
                                 .alongWith(new RollerFeed(m_roller, m_shooter)));
 
         // ── SysId bindings (comment out during normal use) ────────────────────────
