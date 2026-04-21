@@ -26,6 +26,8 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.OIConstants;
+import frc.robot.commands.AgitatorForward;
+import frc.robot.commands.AgitatorReverse;
 import frc.robot.commands.AutoAim;
 import frc.robot.commands.IntakeDeploy;
 import frc.robot.commands.IntakeReverse;
@@ -126,12 +128,20 @@ public class RobotContainer {
         // Button bindings — add to configureButtonBindings()
         // whileTrue retracts and stops roller automatically when button is released,
         // triggering IntakeDeploy.end().
-        m_driverController.rightBumper().toggleOnTrue(new IntakeDeploy(m_intake));
-        m_driverController.leftBumper().toggleOnTrue(new IntakeReverse(m_intake));
+        m_driverController
+                .rightBumper()
+                .toggleOnTrue(
+                        new IntakeDeploy(m_intake).alongWith(new AgitatorForward(m_agitator)));
+        m_driverController
+                .leftBumper()
+                .toggleOnTrue(
+                        new IntakeReverse(m_intake).alongWith(new AgitatorReverse(m_agitator)));
 
         m_driverController
                 .leftTrigger()
-                .whileTrue(new AutoAim(m_swerve, m_shooter, m_roller, m_driverController));
+                .whileTrue(
+                        new AutoAim(m_swerve, m_shooter, m_roller, m_driverController)
+                                .alongWith(new AgitatorForward(m_agitator)));
 
         // RollerFeed gates on shooter RPM internally, so binding it alongside
         // ShooterSetRPM on the same trigger makes sense.
@@ -149,7 +159,8 @@ public class RobotContainer {
                                                 m_swerve.getPose()
                                                         .getTranslation()
                                                         .getDistance(FieldConstants.getHubCenter()))
-                                .alongWith(new RollerFeed(m_roller, m_shooter)));
+                                .alongWith(new RollerFeed(m_roller, m_shooter))
+                                .alongWith(new AgitatorForward(m_agitator)));
 
         // ── SysId bindings (comment out during normal use) ────────────────────────
         // Hold LB + press A/B/X/Y to run SysId routines.
