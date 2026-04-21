@@ -9,7 +9,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.subsystems.Vision.VisionConstants;
+import frc.robot.Constants.FieldConstants;
 import frc.robot.subsystems.roller.Roller;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.Shooter.ShooterConstants;
@@ -45,15 +45,23 @@ public class AutoAim extends Command {
     private final Roller m_roller;
     private final CommandXboxController m_controller;
 
+    // Inside AutoAim.java
+    public static final class Constants {
+        public static final double kAutoAimKP = 0.05;
+        public static final double kAutoAimKI = 0.0;
+        public static final double kAutoAimKD = 0.0;
+        public static final double kAutoAimToleranceDegrees = 2.0;
+    }
+
     // Profiled PID controller limits angular acceleration on large heading
     // corrections, preventing wheel scrub and pose estimate degradation
     // from a sudden spin.
     // TODO: Tune maxVelocity and maxAcceleration alongside kP.
     private final ProfiledPIDController m_headingController =
             new ProfiledPIDController(
-                    VisionConstants.kAutoAimKP,
-                    VisionConstants.kAutoAimKI,
-                    VisionConstants.kAutoAimKD,
+                    Constants.kAutoAimKP,
+                    Constants.kAutoAimKI,
+                    Constants.kAutoAimKD,
                     new TrapezoidProfile.Constraints(
                             SwerveConstants.kMaxAngularVelocityRPS, // max rad/s
                             SwerveConstants.kMaxAngularVelocityRPS * 2)); // max rad/s²
@@ -70,7 +78,7 @@ public class AutoAim extends Command {
         // Enable continuous input so the controller always takes the shortest
         // path to the target heading rather than spinning the long way around.
         m_headingController.enableContinuousInput(-Math.PI, Math.PI);
-        m_headingController.setTolerance(Math.toRadians(VisionConstants.kAutoAimToleranceDegrees));
+        m_headingController.setTolerance(Math.toRadians(Constants.kAutoAimToleranceDegrees));
     }
 
     @Override
@@ -147,8 +155,8 @@ public class AutoAim extends Command {
     private Translation2d getHubCenter() {
         var alliance = DriverStation.getAlliance();
         if (alliance.isPresent() && alliance.get() == Alliance.Red) {
-            return VisionConstants.kRedHubCenter;
+            return FieldConstants.kRedHubCenter;
         }
-        return VisionConstants.kBlueHubCenter;
+        return FieldConstants.kBlueHubCenter;
     }
 }

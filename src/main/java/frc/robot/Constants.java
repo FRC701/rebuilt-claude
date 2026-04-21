@@ -1,6 +1,8 @@
 package frc.robot;
 
 import com.ctre.phoenix6.CANBus;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
 
 public final class Constants {
 
@@ -52,5 +54,22 @@ public final class Constants {
     public static final class OIConstants {
         public static final int kDriverControllerPort = 0;
         public static final double kStickDeadband = 0.1;
+    }
+
+    /**
+     * Field geometry constants for the 2026 Rebuilt game.
+     *
+     * <p>Hub center coordinates are used by AutoAim for heading calculation and by RobotContainer
+     * for distance-based shooter RPM. Centralizing them here prevents duplication and ensures both
+     * use the same values.
+     */
+    public static final class FieldConstants {
+        // Hub center coordinates in meters, WPILib blue-alliance-origin
+        // field coordinate system (origin = blue alliance wall, left corner).
+        // TODO: Look up exact values from the 2026 field dimension drawings.
+        public static final Translation2d kBlueHubCenter =
+                new Translation2d(Units.inchesToMeters(297.0), Units.inchesToMeters(161.6));
+        public static final Translation2d kRedHubCenter =
+                new Translation2d(Units.inchesToMeters(354.2), Units.inchesToMeters(161.6));
     }
 }
