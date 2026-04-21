@@ -5,6 +5,7 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -80,6 +81,30 @@ public class Vision extends SubsystemBase {
         // Maximum distance from current estimated pose to accept a vision
         // measurement. Rejects wildly wrong estimates caused by tag misreads.
         public static final double kMaxPoseJumpMeters = 1.0;
+
+        // ── Auto-Aim — Hub field positions ────────────────────────────────────────
+        // Hub center coordinates in meters, using the WPILib blue-alliance-origin
+        // field coordinate system (origin = blue alliance wall, left corner).
+        // TODO: Look up exact values from the 2026 field dimension drawings.
+        // The field is ~16.54m long x ~8.07m wide.
+        // Blue hub is on the blue alliance side; red hub is on the red alliance side.
+        public static final Translation2d kBlueHubCenter =
+                new Translation2d(
+                        Units.inchesToMeters(297.0), Units.inchesToMeters(161.6)); // placeholder
+        public static final Translation2d kRedHubCenter =
+                new Translation2d(
+                        Units.inchesToMeters(354.2), Units.inchesToMeters(161.6)); // placeholder
+
+        // Yaw tolerance — robot is considered aligned within this many degrees.
+        // TODO: Tune empirically — tighter = more accurate shots, longer alignment time.
+        public static final double kAutoAimToleranceDegrees = 2.0;
+
+        // Auto-aim PID gains — output is rotation rate in rad/s.
+        // TODO: Tune kP empirically. Start ~0.05 and increase until the robot
+        // snaps to heading without oscillating.
+        public static final double kAutoAimKP = 0.05;
+        public static final double kAutoAimKI = 0.0;
+        public static final double kAutoAimKD = 0.0;
     }
 
     private final PhotonCamera m_camera;

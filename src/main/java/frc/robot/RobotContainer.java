@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.OIConstants;
+import frc.robot.commands.AutoAim;
 import frc.robot.commands.IntakeDeploy;
 import frc.robot.commands.IntakeReverse;
 import frc.robot.commands.RollerFeed;
@@ -126,9 +127,11 @@ public class RobotContainer {
         // triggering IntakeDeploy.end().
         m_driverController.rightBumper().toggleOnTrue(new IntakeDeploy(m_intake));
         m_driverController.leftBumper().toggleOnTrue(new IntakeReverse(m_intake));
-        // Note: adjust button assignments to avoid conflicts with existing bindings.
 
-        // Button bindings — adjust to avoid conflicts with existing bindings.
+        m_driverController
+                .leftTrigger()
+                .whileTrue(new AutoAim(m_swerve, m_shooter, m_roller, m_driverController));
+
         // RollerFeed gates on shooter RPM internally, so binding it alongside
         // ShooterSetRPM on the same trigger makes sense.
         m_driverController.povDown().whileTrue(new RollerReverse(m_roller));
