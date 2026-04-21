@@ -24,12 +24,16 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.OIConstants;
+import frc.robot.commands.AgitatorForward;
+import frc.robot.commands.AgitatorReverse;
+import frc.robot.commands.AutoAim;
 import frc.robot.commands.IntakeDeploy;
 import frc.robot.commands.IntakeReverse;
 import frc.robot.commands.RollerFeed;
 import frc.robot.commands.RollerReverse;
-import frc.robot.commands.ShooterSetRPM;
+import frc.robot.commands.ShooterSetRPMFromDistance;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.subsystems.Agitator;
 import frc.robot.subsystems.Vision;
@@ -124,24 +128,39 @@ public class RobotContainer {
         // Button bindings — add to configureButtonBindings()
         // whileTrue retracts and stops roller automatically when button is released,
         // triggering IntakeDeploy.end().
-        m_driverController.rightBumper().whileTrue(new IntakeDeploy(m_intake));
-        m_driverController.leftBumper().whileTrue(new IntakeReverse(m_intake));
-        // Note: adjust button assignments to avoid conflicts with existing bindings.
+        m_driverController
+                .rightBumper()
+                .toggleOnTrue(
+                        new IntakeDeploy(m_intake).alongWith(new AgitatorForward(m_agitator)));
+        m_driverController
+                .leftBumper()
+                .toggleOnTrue(
+                        new IntakeReverse(m_intake).alongWith(new AgitatorReverse(m_agitator)));
 
-        // Button bindings — adjust to avoid conflicts with existing bindings.
+        m_driverController
+                .leftTrigger()
+                .whileTrue(
+                        new AutoAim(m_swerve, m_shooter, m_roller, m_driverController)
+                                .alongWith(new AgitatorForward(m_agitator)));
+
         // RollerFeed gates on shooter RPM internally, so binding it alongside
         // ShooterSetRPM on the same trigger makes sense.
         m_driverController.povDown().whileTrue(new RollerReverse(m_roller));
 
-        // Spin up the shooter and feed balls simultaneously.
-        // ShooterSetRPM owns Shooter; RollerFeed owns Roller.
-        // RollerFeed internally gates on isAtTargetRPM() so balls only
-        // feed once the shooter is ready — no explicit sequencing needed.
+        // Right trigger — spin up shooter at distance-interpolated RPM and feed when ready.
+        // Distance is recalculated every loop from the robot's current pose to the
+        // alliance hub center, so RPM tracks automatically as the robot moves.
         m_driverController
                 .rightTrigger()
                 .whileTrue(
-                        new ShooterSetRPM(m_shooter, Shooter.ShooterConstants.kDefaultRPM)
-                                .alongWith(new RollerFeed(m_roller, m_shooter)));
+                        new ShooterSetRPMFromDistance(
+                                        m_shooter,
+                                        () ->
+                                                m_swerve.getPose()
+                                                        .getTranslation()
+                                                        .getDistance(FieldConstants.getHubCenter()))
+                                .alongWith(new RollerFeed(m_roller, m_shooter))
+                                .alongWith(new AgitatorForward(m_agitator)));
 
         // ── SysId bindings (comment out during normal use) ────────────────────────
         // Hold LB + press A/B/X/Y to run SysId routines.

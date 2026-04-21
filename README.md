@@ -116,6 +116,83 @@ A bit of trouble getting compile to work. Had to find the latest API.
 Tried to use the Phoenix 5 API. The Phoenix 6 API supports the CANDle. Rewrote the code three times 
 in order to get it correct.
 
+# WPILib Command Composition Methods
+
+## Parallel Combinators
+Run commands simultaneously.
+
+| Method           | Ends When                            |
+|------------------|--------------------------------------|
+| `.alongWith()`   | All commands finish                  |
+| `.raceWith()`    | Any one command finishes             |
+| `.deadlineFor()` | The command it is called on finishes |
+
+## Sequential Combinators
+Run commands one after another.
+
+| Method              | Behavior                                    |
+|---------------------|---------------------------------------------|
+| `.andThen()`        | Runs next command after this one finishes   |
+| `.beforeStarting()` | Runs another command before this one starts |
+
+## Decorators
+Modify command behavior without subclassing.
+
+| Method                     | Behavior                                                       |
+|----------------------------|----------------------------------------------------------------|
+| `.unless()`                | Skips the command if a condition is true                       |
+| `.onlyIf()`                | Only runs if a condition is true                               |
+| `.withTimeout()`           | Adds a time limit to a command                                 |
+| `.repeatedly()`            | Restarts the command when it finishes                          |
+| `.withInterruptBehavior()` | Controls how the command responds to interruption              |
+| `.finallyDo()`             | Runs a lambda when the command ends regardless of interruption |
+| `.handleInterrupt()`       | Runs a lambda only if interrupted                              |
+
+## WPILib Trigger Binding Methods
+
+Trigger binding methods are called on a `Trigger` object — returned by controller
+button factories like `m_controller.a()` or constructed from any `BooleanSupplier`.
+All binding methods return the `Trigger` they were called on, so they can be chained.
+
+### Command Scheduling Bindings
+
+| Method                    | Schedules When                     | Cancels When                                 |
+|---------------------------|------------------------------------|----------------------------------------------|
+| `.onTrue(command)`        | Condition changes `false` → `true` | Command's own `isFinished()`                 |
+| `.onFalse(command)`       | Condition changes `true` → `false` | Command's own `isFinished()`                 |
+| `.whileTrue(command)`     | Condition changes `false` → `true` | Condition changes back to `false`            |
+| `.whileFalse(command)`    | Condition changes `true` → `false` | Condition changes back to `true`             |
+| `.toggleOnTrue(command)`  | Condition changes `false` → `true` | Next time condition changes `false` → `true` |
+| `.toggleOnFalse(command)` | Condition changes `true` → `false` | Next time condition changes `true` → `false` |
+
+### Trigger Composition Methods
+
+These return a new `Trigger` and do not schedule commands themselves.
+Used to build composite conditions before calling a scheduling binding.
+
+| Method                  | Behavior                                                                         |
+|-------------------------|----------------------------------------------------------------------------------|
+| `.and(BooleanSupplier)` | New trigger that is `true` only when both conditions are `true`                  |
+| `.or(BooleanSupplier)`  | New trigger that is `true` when either condition is `true`                       |
+| `.negate()`             | New trigger that is `true` when the original is `false`                          |
+| `.debounce(seconds)`    | New trigger that filters out transient state changes shorter than the given time |
+
+### Notes
+
+- Binding declarations are **declarative** — declare once during robot init, the
+  scheduler handles evaluation every loop automatically.
+- `.whileTrue()` will **not** re-schedule a command that finishes while the trigger
+  is still true. Wrap with `.repeatedly()` if restart behavior is needed.
+- `.toggleOnTrue()` is useful for subsystems that should stay running until toggled
+  off, such as an intake that should keep running until the button is pressed again.
+- Triggers can be chained to bind multiple commands to the same button:
+
+```java
+  m_controller.a()
+      .onTrue(new DeployCommand())   // runs when pressed
+      .onFalse(new RetractCommand()); // runs when released
+```
+
 # Notes
 
 1. Be aware of garbage collector pressure in periodic. Direct or indirect allocations (ie new) are to be

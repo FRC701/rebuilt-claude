@@ -14,6 +14,7 @@ package frc.robot;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.Constants.FieldConstants;
 
 public class Robot extends TimedRobot {
 
@@ -44,6 +45,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousInit() {
+        FieldConstants.clearHubCenterCache();
         m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
         if (m_autonomousCommand != null) {
@@ -58,6 +60,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void teleopInit() {
+        FieldConstants.clearHubCenterCache();
         // Cancel auto command when teleop starts so the driver has full control
         if (m_autonomousCommand != null) {
             m_autonomousCommand.cancel();
