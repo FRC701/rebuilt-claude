@@ -193,6 +193,15 @@ Used to build composite conditions before calling a scheduling binding.
       .onFalse(new RetractCommand()); // runs when released
 ```
 
+# Future Features
+
+0. Swap left and right trigger for better coordination. Note that ShootFromDistance can 
+   pre-spin for AutoAim.
+1. Passing. Adds new capabilities and knowledge about position.
+2. Only pass when in the neutral zone
+3. Only shoot when in the alliance zone
+4. Climbing (and all the things)
+
 # Notes
 
 1. Be aware of garbage collector pressure in periodic. Direct or indirect allocations (ie new) are to be
